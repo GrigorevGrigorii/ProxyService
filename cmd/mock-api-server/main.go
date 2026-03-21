@@ -10,19 +10,22 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func mockHandler(c *gin.Context) {
+type MockHandlers struct {
+	cfg *config.Config
+}
+
+func (h *MockHandlers) mockHandler(c *gin.Context) {
 	body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		body = []byte(err.Error())
 	}
 
 	resp := gin.H{
-		"status": "ok",
 		"method": c.Request.Method,
 		"query":  c.Request.URL.RawQuery,
 		"body":   string(body),
 	}
-	c.IndentedJSON(http.StatusOK, resp)
+	c.IndentedJSON(h.cfg.MockServer.ResponseStatusCode, resp)
 }
 
 func main() {
@@ -31,15 +34,19 @@ func main() {
 		log.Fatal(err)
 	}
 
+	mockHandlers := MockHandlers{
+		cfg: cfg,
+	}
+
 	router := gin.Default()
 	router.SetTrustedProxies(nil)
 
 	router.GET("/ping", func(c *gin.Context) { c.IndentedJSON(http.StatusOK, gin.H{"status": "ok"}) })
 
-	router.GET("/mock", mockHandler)
-	router.POST("/mock", mockHandler)
-	router.PUT("/mock", mockHandler)
-	router.DELETE("/mock", mockHandler)
+	router.GET("/mock", mockHandlers.mockHandler)
+	router.POST("/mock", mockHandlers.mockHandler)
+	router.PUT("/mock", mockHandlers.mockHandler)
+	router.DELETE("/mock", mockHandlers.mockHandler)
 
 	router.Run(fmt.Sprintf(":%d", cfg.MockServer.Port))
 }

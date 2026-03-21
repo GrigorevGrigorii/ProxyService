@@ -15,7 +15,8 @@ type ProxyServerConfig struct {
 }
 
 type MockServerConfig struct {
-	Port int `mapstructure:"port"`
+	Port               int `mapstructure:"port"`
+	ResponseStatusCode int `mapstructure:"response_status_code"`
 }
 
 func Load() (*Config, error) {
