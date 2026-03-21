@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"proxy-service/internal/config"
+	"reflect"
 	"testing"
 )
 
@@ -28,39 +29,43 @@ func TestAllowedToProxy(t *testing.T) {
 		service string
 		method  config.HTTPMethod
 		path    string
-		want    bool
+		want    *config.Service
 	}{
 		{
 			service: "mock",
 			method:  config.MethodGet,
 			path:    "/mock",
-			want:    true,
+			want:    &service,
 		},
 		{
 			service: "unknown", // not allowed by config
 			method:  config.MethodGet,
 			path:    "/mock",
-			want:    false,
+			want:    nil,
 		},
 		{
 			service: "mock",
 			method:  config.MethodPost, // not allowed by config
 			path:    "/mock",
-			want:    false,
+			want:    nil,
 		},
 		{
 			service: "mock",
 			method:  config.MethodGet,
 			path:    "/another/path", // not allowed by config
-			want:    false,
+			want:    nil,
 		},
 	}
 
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("Test %d", i), func(t *testing.T) {
-			got := handlers.allowedToProxy(tt.service, tt.method, tt.path)
-			if got != tt.want {
-				t.Errorf("For service=%v, method=%v, path=%v got %t, but expected %t", tt.service, tt.method, tt.path, got, tt.want)
+			got := handlers.getAllowedService(tt.service, tt.method, tt.path)
+			if (tt.want == nil) != (got == nil) { // both nil or both not nil
+				t.Errorf("For service=%v, method=%v, path=%v got %v, but expected %v", tt.service, tt.method, tt.path, got, tt.want)
+				return
+			}
+			if tt.want != nil && !reflect.DeepEqual(*got, *tt.want) {
+				t.Errorf("For service=%v, method=%v, path=%v got %v, but expected %v", tt.service, tt.method, tt.path, got, tt.want)
 			}
 		})
 	}

@@ -19,7 +19,7 @@ func mockHandler(c *gin.Context) {
 	resp := gin.H{
 		"status": "ok",
 		"method": c.Request.Method,
-		"query":  c.Request.URL.Query(),
+		"query":  c.Request.URL.RawQuery,
 		"body":   string(body),
 	}
 	c.IndentedJSON(http.StatusOK, resp)
