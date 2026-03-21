@@ -6,22 +6,22 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func PingHandler(c *gin.Context) {
+func Ping(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, gin.H{"status": "ok"})
 }
 
-func GetProxyHandler(c *gin.Context) {
+func ProxyGetRequest(c *gin.Context) {
 	c.IndentedJSON(http.StatusNotImplemented, gin.H{"message": "not_implemented_error"})
 }
 
-func PostProxyHandler(c *gin.Context) {
+func ProxyPostRequest(c *gin.Context) {
 	c.IndentedJSON(http.StatusNotImplemented, gin.H{"message": "not_implemented_error"})
 }
 
-func PutProxyHandler(c *gin.Context) {
+func ProxyPutRequest(c *gin.Context) {
 	c.IndentedJSON(http.StatusNotImplemented, gin.H{"message": "not_implemented_error"})
 }
 
-func DeleteProxyHandler(c *gin.Context) {
+func ProxyDeleteRequest(c *gin.Context) {
 	c.IndentedJSON(http.StatusNotImplemented, gin.H{"message": "not_implemented_error"})
 }
