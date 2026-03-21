@@ -16,7 +16,7 @@ func Ping(c *gin.Context) {
 }
 
 func (h *Handlers) ProxyGetRequest(c *gin.Context) {
-	if !h.allowedToProxy(c.Param("service"), config.HTTPMethod(c.Request.Method), c.Param("path")) {
+	if !h.allowedToProxy(c.Param("service"), config.MethodGet, c.Param("path")) {
 		c.IndentedJSON(http.StatusForbidden, gin.H{"message": "service or path is not allowed"})
 		return
 	}
@@ -24,7 +24,7 @@ func (h *Handlers) ProxyGetRequest(c *gin.Context) {
 }
 
 func (h *Handlers) ProxyPostRequest(c *gin.Context) {
-	if !h.allowedToProxy(c.Param("service"), config.HTTPMethod(c.Request.Method), c.Param("path")) {
+	if !h.allowedToProxy(c.Param("service"), config.MethodPost, c.Param("path")) {
 		c.IndentedJSON(http.StatusForbidden, gin.H{"message": "service or path is not allowed"})
 		return
 	}
@@ -32,7 +32,7 @@ func (h *Handlers) ProxyPostRequest(c *gin.Context) {
 }
 
 func (h *Handlers) ProxyPutRequest(c *gin.Context) {
-	if !h.allowedToProxy(c.Param("service"), config.HTTPMethod(c.Request.Method), c.Param("path")) {
+	if !h.allowedToProxy(c.Param("service"), config.MethodPut, c.Param("path")) {
 		c.IndentedJSON(http.StatusForbidden, gin.H{"message": "service or path is not allowed"})
 		return
 	}
@@ -40,7 +40,7 @@ func (h *Handlers) ProxyPutRequest(c *gin.Context) {
 }
 
 func (h *Handlers) ProxyDeleteRequest(c *gin.Context) {
-	if !h.allowedToProxy(c.Param("service"), config.HTTPMethod(c.Request.Method), c.Param("path")) {
+	if !h.allowedToProxy(c.Param("service"), config.MethodDelete, c.Param("path")) {
 		c.IndentedJSON(http.StatusForbidden, gin.H{"message": "service or path is not allowed"})
 		return
 	}
