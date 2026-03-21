@@ -8,8 +8,8 @@ import (
 
 func TestAllowedToProxy(t *testing.T) {
 	// config that allows only requests to "mock" service with "GET" method and "/mock" path
-	var services = []config.Service{
-		{
+	var services = map[string]config.Service{
+		"mock": {
 			Name: "mock",
 			Targets: []config.Target{
 				{

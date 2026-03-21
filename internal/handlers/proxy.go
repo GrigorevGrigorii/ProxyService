@@ -8,7 +8,7 @@ import (
 )
 
 type Handlers struct {
-	Services []config.Service
+	Services map[string]config.Service
 }
 
 func Ping(c *gin.Context) {
@@ -48,15 +48,16 @@ func (h *Handlers) ProxyDeleteRequest(c *gin.Context) {
 }
 
 func (h *Handlers) allowedToProxy(service string, method config.HTTPMethod, path string) bool {
-	for _, allowesService := range h.Services {
-		if allowesService.Name == service {
-			for _, allowedTarget := range allowesService.Targets {
-				if allowedTarget.Method == method && allowedTarget.Path == path {
-					return true
-				}
-			}
-			return false
+	allowesService, ok := h.Services[service]
+	if !ok {
+		return false
+	}
+
+	for _, allowedTarget := range allowesService.Targets {
+		if allowedTarget.Method == method && allowedTarget.Path == path {
+			return true
 		}
 	}
+
 	return false
 }

@@ -28,18 +28,24 @@ type Service struct {
 	RetryInterval float32  `yaml:"retry_interval"`
 }
 
-func LoadServices(path string) ([]Service, error) {
+func LoadServices(path string) (map[string]Service, error) {
 	var services []Service
+	var servicesMap map[string]Service
 
 	yamlFile, err := os.ReadFile(path)
 	if err != nil {
-		return services, err
+		return servicesMap, err
 	}
 
 	err = yaml.Unmarshal(yamlFile, &services)
 	if err != nil {
-		return services, err
+		return servicesMap, err
 	}
 
-	return services, nil
+	servicesMap = make(map[string]Service, len(services))
+	for _, service := range services {
+		servicesMap[service.Name] = service
+	}
+
+	return servicesMap, nil
 }
