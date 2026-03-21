@@ -9,3 +9,6 @@ start-proxy:
 
 start-mock:
 	go run cmd/mock-api-server/main.go
+
+test:
+	go test ./...
