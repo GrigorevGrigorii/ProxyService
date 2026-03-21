@@ -1,14 +1,16 @@
 package handlers
 
 import (
+	"io"
 	"net/http"
+	"net/url"
 	"proxy-service/internal/config"
 
 	"github.com/gin-gonic/gin"
 )
 
 type ProxyHandlers struct {
-	Services map[string]config.Service
+	Services *map[string]config.Service
 }
 
 func Ping(c *gin.Context) {
@@ -21,7 +23,28 @@ func (h *ProxyHandlers) ProxyGetRequest(c *gin.Context) {
 		c.IndentedJSON(http.StatusForbidden, gin.H{"message": "service or path is not allowed"})
 		return
 	}
-	c.IndentedJSON(http.StatusNotImplemented, gin.H{"message": "not_implemented_error"})
+
+	targetUrl := url.URL{
+		Scheme:   service.Scheme,
+		Host:     service.Host,
+		Path:     c.Param("path"),
+		RawQuery: c.Request.URL.RawQuery,
+	}
+
+	resp, err := http.Get(targetUrl.String())
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.String(resp.StatusCode, string(body))
 }
 
 func (h *ProxyHandlers) ProxyPostRequest(c *gin.Context) {
@@ -52,7 +75,7 @@ func (h *ProxyHandlers) ProxyDeleteRequest(c *gin.Context) {
 }
 
 func (h *ProxyHandlers) getAllowedService(service string, method config.HTTPMethod, path string) *config.Service {
-	allowedService, ok := h.Services[service]
+	allowedService, ok := (*h.Services)[service]
 	if !ok { // service not found
 		return nil
 	}

@@ -47,7 +47,7 @@ func TestLoadServices(t *testing.T) {
 		t.Error("Failed to load services")
 	}
 
-	if !reflect.DeepEqual(servicesMapGot, servicesMap) {
+	if !reflect.DeepEqual(*servicesMapGot, servicesMap) {
 		t.Errorf("servicesMapGot != servicesMap: %v != %v", servicesMapGot, servicesMap)
 	}
 }

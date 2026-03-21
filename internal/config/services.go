@@ -23,6 +23,7 @@ type Target struct {
 type Service struct {
 	Name          string              `yaml:"name"`
 	Host          string              `yaml:"host"`
+	Scheme        string              `yaml:"scheme"`
 	Targets       []Target            `yaml:"targets"`
 	RetryCount    uint8               `yaml:"retry_count"`
 	RetryInterval float32             `yaml:"retry_interval"`
@@ -36,18 +37,18 @@ func (s *Service) FillTargetsSet() {
 	}
 }
 
-func LoadServices(path string) (map[string]Service, error) {
+func LoadServices(path string) (*map[string]Service, error) {
 	var services []Service
 	var servicesMap map[string]Service
 
 	yamlFile, err := os.ReadFile(path)
 	if err != nil {
-		return servicesMap, err
+		return nil, err
 	}
 
 	err = yaml.Unmarshal(yamlFile, &services)
 	if err != nil {
-		return servicesMap, err
+		return nil, err
 	}
 
 	servicesMap = make(map[string]Service, len(services))
@@ -56,5 +57,5 @@ func LoadServices(path string) (map[string]Service, error) {
 		servicesMap[service.Name] = service
 	}
 
-	return servicesMap, nil
+	return &servicesMap, nil
 }

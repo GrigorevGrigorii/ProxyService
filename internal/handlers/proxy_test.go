@@ -22,7 +22,7 @@ func TestAllowedToProxy(t *testing.T) {
 	var servicesMap = map[string]config.Service{"mock": service}
 
 	handlers := ProxyHandlers{
-		Services: servicesMap,
+		Services: &servicesMap,
 	}
 
 	tests := []struct {
