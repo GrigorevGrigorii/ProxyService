@@ -1,14 +1,21 @@
 package main
 
 import (
-	"net/http"
+	"proxy-service/internal/handlers"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	router := gin.Default()
-	router.GET("/ping", func(c *gin.Context) { c.IndentedJSON(http.StatusOK, gin.H{"status": "ok"}) })
+	router.SetTrustedProxies(nil)
+
+	router.GET("/ping", handlers.PingHandler)
+
+	router.GET("/api/v1/:service/*path", handlers.GetProxyHandler)
+	router.POST("/api/v1/:service/*path", handlers.PostProxyHandler)
+	router.PUT("/api/v1/:service/*path", handlers.PutProxyHandler)
+	router.DELETE("/api/v1/:service/*path", handlers.DeleteProxyHandler)
 
 	router.Run("localhost:8080")
 }
