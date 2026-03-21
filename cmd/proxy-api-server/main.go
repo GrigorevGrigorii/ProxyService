@@ -20,7 +20,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	proxy_handlers := handlers.Handlers{
+	proxyHandlers := handlers.ProxyHandlers{
 		Services: services,
 	}
 
@@ -29,10 +29,10 @@ func main() {
 
 	router.GET("/ping", handlers.Ping)
 
-	router.GET("/api/v1/:service/*path", proxy_handlers.ProxyGetRequest)
-	router.POST("/api/v1/:service/*path", proxy_handlers.ProxyPostRequest)
-	router.PUT("/api/v1/:service/*path", proxy_handlers.ProxyPutRequest)
-	router.DELETE("/api/v1/:service/*path", proxy_handlers.ProxyDeleteRequest)
+	router.GET("/api/v1/:service/*path", proxyHandlers.ProxyGetRequest)
+	router.POST("/api/v1/:service/*path", proxyHandlers.ProxyPostRequest)
+	router.PUT("/api/v1/:service/*path", proxyHandlers.ProxyPutRequest)
+	router.DELETE("/api/v1/:service/*path", proxyHandlers.ProxyDeleteRequest)
 
 	router.Run(fmt.Sprintf(":%d", cfg.ProxyServer.Port))
 }

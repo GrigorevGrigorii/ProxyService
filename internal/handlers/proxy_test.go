@@ -20,7 +20,7 @@ func TestAllowedToProxy(t *testing.T) {
 		},
 	}
 
-	handlers := Handlers{
+	handlers := ProxyHandlers{
 		Services: services,
 	}
 
