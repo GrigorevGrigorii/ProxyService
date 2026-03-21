@@ -1,8 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"io"
+	"log"
 	"net/http"
+	"proxy-service/internal/config"
 
 	"github.com/gin-gonic/gin"
 )
@@ -23,6 +26,11 @@ func mockHandler(c *gin.Context) {
 }
 
 func main() {
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	router := gin.Default()
 	router.SetTrustedProxies(nil)
 
@@ -33,5 +41,5 @@ func main() {
 	router.PUT("/mock", mockHandler)
 	router.DELETE("/mock", mockHandler)
 
-	router.Run(":8081")
+	router.Run(fmt.Sprintf(":%d", cfg.MockServer.Port))
 }

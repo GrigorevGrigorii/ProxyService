@@ -1,0 +1,13 @@
+- name: mock
+  host: localhost:8081
+  targets:
+    - path: /mock
+      method: GET
+    - path: /mock
+      method: POST
+    - path: /mock
+      method: PUT
+    - path: /mock
+      method: DELETE
+  retry_count: 3
+  retry_interval: 0.1

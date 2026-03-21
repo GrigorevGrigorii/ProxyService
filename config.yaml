@@ -1,0 +1,5 @@
+proxy_server:
+  port: 8080
+  services_path: services.yaml
+mock_server:
+  port: 8081
