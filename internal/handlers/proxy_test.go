@@ -8,20 +8,20 @@ import (
 
 func TestAllowedToProxy(t *testing.T) {
 	// config that allows only requests to "mock" service with "GET" method and "/mock" path
-	var services = map[string]config.Service{
-		"mock": {
-			Name: "mock",
-			Targets: []config.Target{
-				{
-					Path:   "/mock",
-					Method: "GET",
-				},
+	service := config.Service{
+		Name: "mock",
+		Targets: []config.Target{
+			{
+				Path:   "/mock",
+				Method: "GET",
 			},
 		},
 	}
+	service.FillTargetsSet()
+	var servicesMap = map[string]config.Service{"mock": service}
 
 	handlers := ProxyHandlers{
-		Services: services,
+		Services: servicesMap,
 	}
 
 	tests := []struct {

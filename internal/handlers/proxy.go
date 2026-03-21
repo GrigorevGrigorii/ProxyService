@@ -49,15 +49,14 @@ func (h *ProxyHandlers) ProxyDeleteRequest(c *gin.Context) {
 
 func (h *ProxyHandlers) allowedToProxy(service string, method config.HTTPMethod, path string) bool {
 	allowesService, ok := h.Services[service]
-	if !ok {
+	if !ok { // service not found
 		return false
 	}
 
-	for _, allowedTarget := range allowesService.Targets {
-		if allowedTarget.Method == method && allowedTarget.Path == path {
-			return true
-		}
+	_, ok = allowesService.TargetsSet[config.Target{Method: method, Path: path}]
+	if !ok { // target in service not found
+		return false
 	}
 
-	return false
+	return true
 }

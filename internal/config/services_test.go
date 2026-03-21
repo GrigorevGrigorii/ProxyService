@@ -20,6 +20,8 @@ func TestLoadServices(t *testing.T) {
 			},
 		},
 	}
+	service.FillTargetsSet()
+
 	var services = []Service{service}
 	var servicesMap = map[string]Service{"mock": service}
 
