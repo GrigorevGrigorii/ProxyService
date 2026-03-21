@@ -17,5 +17,5 @@ func main() {
 	router.PUT("/api/v1/:service/*path", handlers.ProxyPutRequest)
 	router.DELETE("/api/v1/:service/*path", handlers.ProxyDeleteRequest)
 
-	router.Run("localhost:8080")
+	router.Run(":8080")
 }
