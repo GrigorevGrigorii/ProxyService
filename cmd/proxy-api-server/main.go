@@ -23,7 +23,7 @@ func main() {
 
 	proxyHandlers := handlers.ProxyHandlers{
 		Services:   services,
-		HttpClient: &client.Client{},
+		HTTPClient: &client.Client{},
 	}
 
 	router := gin.Default()

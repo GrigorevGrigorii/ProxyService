@@ -1,35 +1,71 @@
 package client
 
 import (
+	"context"
 	"net/http"
 	"time"
 )
 
 type HTTPClient interface {
-	Get(url string, timeout time.Duration, retryCount uint8, retryInterval time.Duration) (resp *http.Response, err error)
+	Get(ctx context.Context, url string, timeout time.Duration, retryCount uint8, retryInterval time.Duration) (resp *http.Response, err error)
 }
 
 type Client struct{}
 
-func (c *Client) Get(url string, timeout time.Duration, retryCount uint8, retryInterval time.Duration) (resp *http.Response, err error) {
+func (c *Client) Get(ctx context.Context, url string, timeout time.Duration, retryCount uint8, retryInterval time.Duration) (resp *http.Response, err error) {
 	var currentRetryCount uint8 = 0
-	var client = http.Client{Timeout: timeout}
+	httpClient := &http.Client{Timeout: timeout}
 
 	for {
-		resp, err = client.Get(url)
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+		if err != nil {
+			return nil, err
+		}
+
+		resp, err = httpClient.Do(req)
 
 		if currentRetryCount < retryCount-1 && (err != nil || shouldRetry(resp)) {
 			if resp != nil {
 				resp.Body.Close()
 			}
 			currentRetryCount++
-			<-time.After(retryInterval)
+			if err := waitRetry(ctx, retryInterval); err != nil {
+				return nil, err
+			}
 		} else {
 			break
 		}
 	}
 
 	return resp, err
+}
+
+func waitRetry(ctx context.Context, d time.Duration) error {
+	if d <= 0 {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+			return nil
+		}
+	}
+	t := time.NewTimer(d)
+	select {
+	case <-t.C:
+		return nil
+	case <-ctx.Done():
+		if !t.Stop() {
+			select {
+			case <-t.C:
+			default:
+			}
+		}
+		return ctx.Err()
+	}
 }
 
 func shouldRetry(resp *http.Response) bool {

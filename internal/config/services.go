@@ -29,7 +29,7 @@ func (s *Service) FillTargetsSet() {
 	}
 }
 
-func LoadServices(path string) (*map[string]Service, error) {
+func LoadServices(path string) (map[string]Service, error) {
 	var services []Service
 	var servicesMap map[string]Service
 
@@ -49,5 +49,5 @@ func LoadServices(path string) (*map[string]Service, error) {
 		servicesMap[service.Name] = service
 	}
 
-	return &servicesMap, nil
+	return servicesMap, nil
 }

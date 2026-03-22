@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -30,7 +31,7 @@ func TestAllowedToProxy(t *testing.T) {
 	var servicesMap = map[string]config.Service{"mock": service}
 
 	handlers := ProxyHandlers{
-		Services: &servicesMap,
+		Services: servicesMap,
 	}
 
 	tests := []struct {
@@ -80,6 +81,7 @@ func TestAllowedToProxy(t *testing.T) {
 }
 
 type stubHttpClient struct {
+	passedCtx           context.Context
 	passedURL           string
 	passedTimeout       time.Duration
 	passedRetryCount    uint8
@@ -88,11 +90,15 @@ type stubHttpClient struct {
 	err                 error
 }
 
-func (s *stubHttpClient) Get(url string, timeout time.Duration, retryCount uint8, retryInterval time.Duration) (*http.Response, error) {
+func (s *stubHttpClient) Get(ctx context.Context, url string, timeout time.Duration, retryCount uint8, retryInterval time.Duration) (*http.Response, error) {
+	s.passedCtx = ctx
 	s.passedURL = url
 	s.passedTimeout = timeout
 	s.passedRetryCount = retryCount
 	s.passedRetryInterval = retryInterval
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
 	if s.err != nil {
 		return nil, s.err
 	}
@@ -131,8 +137,8 @@ func TestProxyGetRequest_NotAllowedService(t *testing.T) {
 	svc := testServiceForProxy()
 	services := map[string]config.Service{"mock": svc}
 	h := ProxyHandlers{
-		Services:   &services,
-		HttpClient: &stubHttpClient{resp: httpResp(http.StatusOK, "no")},
+		Services:   services,
+		HTTPClient: &stubHttpClient{resp: httpResp(http.StatusOK, "no")},
 	}
 	r := testProxyGETRouter(h)
 
@@ -150,8 +156,8 @@ func TestProxyGetRequest_ProxyResponseData(t *testing.T) {
 	services := map[string]config.Service{service.Name: service}
 	stub := &stubHttpClient{resp: httpResp(http.StatusNotFound, "upstream-body")}
 	h := ProxyHandlers{
-		Services:   &services,
-		HttpClient: stub,
+		Services:   services,
+		HTTPClient: stub,
 	}
 	r := testProxyGETRouter(h)
 
@@ -161,16 +167,16 @@ func TestProxyGetRequest_ProxyResponseData(t *testing.T) {
 
 	wantURL := "http://upstream.example/mock?x=1"
 	if stub.passedURL != wantURL {
-		t.Fatalf("getter URL = %q, want %q", stub.passedURL, wantURL)
+		t.Fatalf("got URL = %q, want %q", stub.passedURL, wantURL)
 	}
 	if stub.passedTimeout != time.Duration(service.Timeout*float32(time.Second)) {
-		t.Fatalf("getter URL = %q, want %q", stub.passedURL, wantURL)
+		t.Fatalf("got timeout = %q, want %q", stub.passedURL, wantURL)
 	}
 	if stub.passedRetryCount != service.RetryCount {
-		t.Fatalf("getter URL = %q, want %q", stub.passedURL, wantURL)
+		t.Fatalf("got retry count = %q, want %q", stub.passedURL, wantURL)
 	}
 	if stub.passedRetryInterval != time.Duration(service.RetryInterval*float32(time.Second)) {
-		t.Fatalf("getter URL = %q, want %q", stub.passedURL, wantURL)
+		t.Fatalf("got retry interval = %q, want %q", stub.passedURL, wantURL)
 	}
 	if rec.Code != http.StatusNotFound {
 		t.Fatalf("status = %d, want %d", rec.Code, http.StatusNotFound)
@@ -180,13 +186,41 @@ func TestProxyGetRequest_ProxyResponseData(t *testing.T) {
 	}
 }
 
+func TestProxyGetRequest_ContextCancelled(t *testing.T) {
+	svc := testServiceForProxy()
+	services := map[string]config.Service{"mock": svc}
+	h := ProxyHandlers{
+		Services:   services,
+		HTTPClient: &stubHttpClient{resp: httpResp(http.StatusOK, "ok")},
+	}
+	r := testProxyGETRouter(h)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/mock/mock", nil)
+	req = req.WithContext(ctx)
+	rec := httptest.NewRecorder()
+	r.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusInternalServerError {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusInternalServerError)
+	}
+	var payload map[string]string
+	if err := json.Unmarshal(rec.Body.Bytes(), &payload); err != nil {
+		t.Fatalf("json: %v", err)
+	}
+	if payload["error"] != context.Canceled.Error() {
+		t.Fatalf("error field = %q, want canceled", payload["error"])
+	}
+}
+
 func TestProxyGetRequest_ClientError(t *testing.T) {
 	svc := testServiceForProxy()
 	services := map[string]config.Service{"mock": svc}
 	stub := &stubHttpClient{err: fmt.Errorf("connection refused")}
 	h := ProxyHandlers{
-		Services:   &services,
-		HttpClient: stub,
+		Services:   services,
+		HTTPClient: stub,
 	}
 	r := testProxyGETRouter(h)
 

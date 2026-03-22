@@ -20,13 +20,14 @@ type MockServerConfig struct {
 }
 
 func Load() (*Config, error) {
+	viper := viper.New()
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
 
 	// Environment variables override
 	viper.AutomaticEnv()
-	viper.BindEnv("server.port", "PORT")
+	viper.BindEnv("proxy_server.port", "PORT")
 
 	if err := viper.ReadInConfig(); err != nil {
 		return nil, err

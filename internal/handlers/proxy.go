@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"io"
 	"net/http"
 	"net/url"
 	"proxy-service/internal/client"
@@ -12,8 +11,8 @@ import (
 )
 
 type ProxyHandlers struct {
-	Services   *map[string]config.Service
-	HttpClient client.HTTPClient
+	Services   map[string]config.Service
+	HTTPClient client.HTTPClient
 }
 
 func Ping(c *gin.Context) {
@@ -34,7 +33,8 @@ func (h *ProxyHandlers) ProxyGetRequest(c *gin.Context) {
 		RawQuery: c.Request.URL.RawQuery,
 	}
 
-	resp, err := h.HttpClient.Get(
+	resp, err := h.HTTPClient.Get(
+		c.Request.Context(),
 		targetUrl.String(),
 		time.Duration(service.Timeout*float32(time.Second)),
 		service.RetryCount,
@@ -46,13 +46,8 @@ func (h *ProxyHandlers) ProxyGetRequest(c *gin.Context) {
 	}
 
 	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
 
-	c.String(resp.StatusCode, string(body))
+	c.DataFromReader(resp.StatusCode, resp.ContentLength, resp.Header.Get("Content-Type"), resp.Body, nil)
 }
 
 func (h *ProxyHandlers) ProxyPostRequest(c *gin.Context) {
@@ -83,7 +78,7 @@ func (h *ProxyHandlers) ProxyDeleteRequest(c *gin.Context) {
 }
 
 func (h *ProxyHandlers) getAllowedService(service string, method string, path string) *config.Service {
-	allowedService, ok := (*h.Services)[service]
+	allowedService, ok := h.Services[service]
 	if !ok { // service not found
 		return nil
 	}
