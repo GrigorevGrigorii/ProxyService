@@ -12,7 +12,9 @@ type HTTPClient interface {
 
 type Client struct{}
 
-func (c *Client) Get(ctx context.Context, url string, timeout time.Duration, retryCount uint8, retryInterval time.Duration) (resp *http.Response, err error) {
+func (c *Client) Get(ctx context.Context, url string, timeout time.Duration, retryCount uint8, retryInterval time.Duration) (*http.Response, error) {
+	var reqErr error
+	var resp *http.Response
 	var currentRetryCount uint8 = 0
 	httpClient := &http.Client{Timeout: timeout}
 
@@ -26,9 +28,9 @@ func (c *Client) Get(ctx context.Context, url string, timeout time.Duration, ret
 			return nil, err
 		}
 
-		resp, err = httpClient.Do(req)
+		resp, reqErr = httpClient.Do(req)
 
-		if currentRetryCount < retryCount-1 && (err != nil || shouldRetry(resp)) {
+		if currentRetryCount < retryCount-1 && (reqErr != nil || shouldRetry(resp)) {
 			if resp != nil {
 				resp.Body.Close()
 			}
@@ -41,7 +43,7 @@ func (c *Client) Get(ctx context.Context, url string, timeout time.Duration, ret
 		}
 	}
 
-	return resp, err
+	return resp, reqErr
 }
 
 func waitRetry(ctx context.Context, d time.Duration) error {
