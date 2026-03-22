@@ -14,10 +14,10 @@ test:
 	go test ./...
 
 start-containers:
-	docker compose -f test/compose.yaml up
+	docker compose -f test/docker-compose.yaml up
 
 start-containers-with-build:
-	docker compose -f test/compose.yaml up --build
+	docker compose -f test/docker-compose.yaml up --build
 
 stop-containers:
-	docker compose -f test/compose.yaml down
+	docker compose -f test/docker-compose.yaml down

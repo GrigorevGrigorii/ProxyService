@@ -1,0 +1,48 @@
+# Бинарники и зависимости
+/bin/
+/dist/
+/vendor/
+*.exe
+*.test
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Логи и временные файлы
+*.log
+tmp/
+temp/
+
+# Конфиги для разработки
+.env
+.env.*
+*.local.yaml
+*.local.yml
+
+# Документация (если не нужна в контейнере)
+README.md
+docs/
+
+# Тесты и инструменты
+*_test.go
+coverage.out
+*.prof
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+build/
+test/
+
+# CI/CD
+.github/
+.gitlab-ci.yml

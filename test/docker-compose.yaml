@@ -8,8 +8,10 @@ services:
       args:
         SERVICE: proxy-api-server
         PORT: 8080
+    volumes:
+      - ../configs:/app/configs:ro
     ports:
-      - 8080:8080
+      - 127.0.0.1:8080:8080
   mock:
     build:
       context: ..
@@ -17,5 +19,7 @@ services:
       args:
         SERVICE: mock-api-server
         PORT: 8081
+    volumes:
+      - ../configs:/app/configs:ro
     ports:
-      - 8081:8081
+      - 127.0.0.1:8081:8081
