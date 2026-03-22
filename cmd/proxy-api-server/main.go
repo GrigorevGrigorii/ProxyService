@@ -7,6 +7,7 @@ import (
 	"proxy-service/internal/config"
 	"proxy-service/internal/handlers"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -27,6 +28,10 @@ func main() {
 	}
 
 	router := gin.Default()
+	router.Use(cors.New(cors.Config{
+		AllowAllOrigins: true,
+		AllowMethods:    []string{"GET", "POST", "PUT", "DELETE"},
+	}))
 	router.SetTrustedProxies(nil)
 
 	router.GET("/ping", handlers.Ping)
