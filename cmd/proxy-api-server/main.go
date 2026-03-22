@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"proxy-service/internal/client"
 	"proxy-service/internal/config"
 	"proxy-service/internal/handlers"
 
@@ -21,7 +22,8 @@ func main() {
 	}
 
 	proxyHandlers := handlers.ProxyHandlers{
-		Services: services,
+		Services:   services,
+		HttpClient: &client.Client{},
 	}
 
 	router := gin.Default()

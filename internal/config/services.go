@@ -6,18 +6,9 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type HTTPMethod string
-
-const (
-	MethodGet    HTTPMethod = "GET"
-	MethodPost   HTTPMethod = "POST"
-	MethodPut    HTTPMethod = "PUT"
-	MethodDelete HTTPMethod = "DELETE"
-)
-
 type Target struct {
-	Path   string     `yaml:"path"`
-	Method HTTPMethod `yaml:"method"`
+	Path   string `yaml:"path"`
+	Method string `yaml:"method"`
 }
 
 type Service struct {

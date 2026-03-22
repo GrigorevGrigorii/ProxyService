@@ -5,7 +5,13 @@ import (
 	"time"
 )
 
-func Get(url string, timeout time.Duration, retryCount uint8, retryInterval time.Duration) (resp *http.Response, err error) {
+type HTTPClient interface {
+	Get(url string, timeout time.Duration, retryCount uint8, retryInterval time.Duration) (resp *http.Response, err error)
+}
+
+type Client struct{}
+
+func (c *Client) Get(url string, timeout time.Duration, retryCount uint8, retryInterval time.Duration) (resp *http.Response, err error) {
 	var currentRetryCount uint8 = 0
 	var client = http.Client{Timeout: timeout}
 
