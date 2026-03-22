@@ -23,7 +23,7 @@ func Load() (*Config, error) {
 	viper := viper.New()
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath(".")
+	viper.AddConfigPath("./configs")
 
 	// Environment variables override
 	viper.AutomaticEnv()

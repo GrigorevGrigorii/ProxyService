@@ -1,6 +1,6 @@
 proxy_server:
   port: 8080
-  services_path: services.yaml
+  services_path: ./configs/services.yaml
 mock_server:
   port: 8081
   response_status_code: 200
