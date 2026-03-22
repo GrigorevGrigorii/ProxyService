@@ -11,7 +11,7 @@ import (
 )
 
 type MockHandlers struct {
-	cfg *config.Config
+	cfg *config.MockServerConfig
 }
 
 func (h *MockHandlers) mockHandler(c *gin.Context) {
@@ -25,11 +25,11 @@ func (h *MockHandlers) mockHandler(c *gin.Context) {
 		"query":  c.Request.URL.RawQuery,
 		"body":   string(body),
 	}
-	c.IndentedJSON(h.cfg.MockServer.ResponseStatusCode, resp)
+	c.IndentedJSON(h.cfg.ResponseStatusCode, resp)
 }
 
 func main() {
-	cfg, err := config.Load()
+	cfg, err := config.LoadMockServer()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -48,5 +48,5 @@ func main() {
 	router.PUT("/mock", mockHandlers.mockHandler)
 	router.DELETE("/mock", mockHandlers.mockHandler)
 
-	router.Run(fmt.Sprintf(":%d", cfg.MockServer.Port))
+	router.Run(fmt.Sprintf(":%d", cfg.Port))
 }

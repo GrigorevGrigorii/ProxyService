@@ -12,12 +12,12 @@ import (
 )
 
 func main() {
-	cfg, err := config.Load()
+	cfg, err := config.LoadProxyServer()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	services, err := config.LoadServices(cfg.ProxyServer.ServicesPath)
+	services, err := config.LoadServices(cfg.ServicesPath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -41,5 +41,5 @@ func main() {
 	router.PUT("/api/v1/:service/*path", proxyHandlers.ProxyPutRequest)
 	router.DELETE("/api/v1/:service/*path", proxyHandlers.ProxyDeleteRequest)
 
-	router.Run(fmt.Sprintf(":%d", cfg.ProxyServer.Port))
+	router.Run(fmt.Sprintf(":%d", cfg.Port))
 }

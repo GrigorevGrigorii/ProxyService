@@ -4,11 +4,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-type Config struct {
-	ProxyServer ProxyServerConfig `mapstructure:"proxy_server"`
-	MockServer  MockServerConfig  `mapstructure:"mock_server"`
-}
-
 type ProxyServerConfig struct {
 	Port         int    `mapstructure:"port"`
 	ServicesPath string `mapstructure:"services_path"`
@@ -19,25 +14,39 @@ type MockServerConfig struct {
 	ResponseStatusCode int `mapstructure:"response_status_code"`
 }
 
-func Load() (*Config, error) {
-	viper := viper.New()
-	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath("./configs")
+func newViper() *viper.Viper {
+	v := viper.New()
+	v.SetConfigName("config")
+	v.SetConfigType("yaml")
+	v.AddConfigPath("./configs")
+	v.AutomaticEnv()
+	return v
+}
 
-	// Environment variables override
-	viper.AutomaticEnv()
-	viper.BindEnv("proxy_server.port", "PORT")
-	viper.BindEnv("mock_server.port", "PORT")
-
-	if err := viper.ReadInConfig(); err != nil {
+func LoadProxyServer() (*ProxyServerConfig, error) {
+	v := newViper()
+	v.BindEnv("proxy_server.port", "PORT")
+	if err := v.ReadInConfig(); err != nil {
 		return nil, err
 	}
 
-	var config Config
-	if err := viper.Unmarshal(&config); err != nil {
+	var cfg ProxyServerConfig
+	if err := v.UnmarshalKey("proxy_server", &cfg); err != nil {
+		return nil, err
+	}
+	return &cfg, nil
+}
+
+func LoadMockServer() (*MockServerConfig, error) {
+	v := newViper()
+	v.BindEnv("mock_server.port", "PORT")
+	if err := v.ReadInConfig(); err != nil {
 		return nil, err
 	}
 
-	return &config, nil
+	var cfg MockServerConfig
+	if err := v.UnmarshalKey("mock_server", &cfg); err != nil {
+		return nil, err
+	}
+	return &cfg, nil
 }
