@@ -12,3 +12,12 @@ start-mock:
 
 test:
 	go test ./...
+
+start-containers:
+	docker compose -f test/compose.yaml up
+
+start-containers-with-build:
+	docker compose -f test/compose.yaml up --build
+
+stop-containers:
+	docker compose -f test/compose.yaml down

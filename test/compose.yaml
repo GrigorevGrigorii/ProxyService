@@ -1,0 +1,21 @@
+# Compose file to run containers for local testing of the service
+name: proxy-service
+services:
+  proxy:
+    build:
+      context: ..
+      dockerfile: build/package/Dockerfile
+      args:
+        SERVICE: proxy-api-server
+        PORT: 8080
+    ports:
+      - 8080:8080
+  mock:
+    build:
+      context: ..
+      dockerfile: build/package/Dockerfile
+      args:
+        SERVICE: mock-api-server
+        PORT: 8081
+    ports:
+      - 8081:8081
