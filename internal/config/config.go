@@ -28,6 +28,7 @@ func Load() (*Config, error) {
 	// Environment variables override
 	viper.AutomaticEnv()
 	viper.BindEnv("proxy_server.port", "PORT")
+	viper.BindEnv("mock_server.port", "PORT")
 
 	if err := viper.ReadInConfig(); err != nil {
 		return nil, err
