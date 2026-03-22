@@ -10,5 +10,6 @@
       method: PUT
     - path: /mock
       method: DELETE
+  timeout: 10.0
   retry_count: 3
   retry_interval: 0.1

@@ -4,7 +4,9 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"proxy-service/internal/client"
 	"proxy-service/internal/config"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -31,7 +33,12 @@ func (h *ProxyHandlers) ProxyGetRequest(c *gin.Context) {
 		RawQuery: c.Request.URL.RawQuery,
 	}
 
-	resp, err := http.Get(targetUrl.String())
+	resp, err := client.Get(
+		targetUrl.String(),
+		time.Duration(service.Timeout*float32(time.Second)),
+		service.RetryCount,
+		time.Duration(service.RetryInterval*float32(time.Second)),
+	)
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

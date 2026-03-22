@@ -22,9 +22,10 @@ type Target struct {
 
 type Service struct {
 	Name          string              `yaml:"name"`
-	Host          string              `yaml:"host"`
 	Scheme        string              `yaml:"scheme"`
+	Host          string              `yaml:"host"`
 	Targets       []Target            `yaml:"targets"`
+	Timeout       float32             `yaml:"timeout"`
 	RetryCount    uint8               `yaml:"retry_count"`
 	RetryInterval float32             `yaml:"retry_interval"`
 	TargetsSet    map[Target]struct{} `yaml:"-"`
