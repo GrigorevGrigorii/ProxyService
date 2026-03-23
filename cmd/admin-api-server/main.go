@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"proxy-service/internal/client"
 	"proxy-service/internal/config"
 	"proxy-service/internal/handlers"
 	"proxy-service/internal/middlewares"
@@ -22,12 +21,7 @@ func main() {
 	}
 
 	// Configs
-	cfg, err := config.LoadProxyServer()
-	if err != nil {
-		log.Fatal().Msg(err.Error())
-	}
-
-	services, err := config.LoadServices(cfg.ServicesPath)
+	cfg, err := config.LoadAdminServer()
 	if err != nil {
 		log.Fatal().Msg(err.Error())
 	}
@@ -46,17 +40,15 @@ func main() {
 	router.Use(middlewares.ZerologMiddleware())
 
 	// Handlers
-	proxyHandlers := handlers.ProxyHandlers{
-		Services:   services,
-		HTTPClient: &client.Client{},
-	}
+	adminHandlers := handlers.AdminHandlers{}
 
 	router.GET("/ping", handlers.Ping)
 
-	router.GET("/api/proxy/v1/:service/*path", proxyHandlers.ProxyGetRequest)
-	router.POST("/api/proxy/v1/:service/*path", proxyHandlers.ProxyPostRequest)
-	router.PUT("/api/proxy/v1/:service/*path", proxyHandlers.ProxyPutRequest)
-	router.DELETE("/api/proxy/v1/:service/*path", proxyHandlers.ProxyDeleteRequest)
+	router.GET("/api/admin/v1/service", adminHandlers.GetServices)
+	router.GET("/api/admin/v1/service/:name", adminHandlers.GetService)
+	router.POST("/api/admin/v1/service/:name", adminHandlers.CreateService)
+	router.PUT("/api/admin/v1/service/:service", adminHandlers.UpdateService)
+	router.DELETE("/api/admin/v1/service/:service", adminHandlers.DeleteService)
 
 	// Server
 	router.Run(fmt.Sprintf(":%d", cfg.Port))

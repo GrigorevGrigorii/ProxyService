@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"proxy-service/internal/config"
+	"proxy-service/internal/handlers"
 	"proxy-service/internal/middlewares"
 
 	"github.com/gin-gonic/gin"
@@ -57,7 +57,7 @@ func main() {
 		cfg: cfg,
 	}
 
-	router.GET("/ping", func(c *gin.Context) { c.IndentedJSON(http.StatusOK, gin.H{"status": "ok"}) })
+	router.GET("/ping", handlers.Ping)
 
 	router.GET("/mock", mockHandlers.mockHandler)
 	router.POST("/mock", mockHandlers.mockHandler)

@@ -1,6 +1,6 @@
 FROM golang:1.25 AS builder
 
-ARG SERVICE # proxy-api-server | mock-api-server
+ARG SERVICE # proxy-api-server | mock-api-server | admin-api-server
 
 ENV CGO_ENABLED=0
 ENV GOOS=linux

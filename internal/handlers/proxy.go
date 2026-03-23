@@ -15,10 +15,6 @@ type ProxyHandlers struct {
 	HTTPClient client.HTTPClient
 }
 
-func Ping(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, gin.H{"status": "ok"})
-}
-
 func (h *ProxyHandlers) ProxyGetRequest(c *gin.Context) {
 	service := h.getAllowedService(c.Param("service"), http.MethodGet, c.Param("path"))
 	if service == nil {

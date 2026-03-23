@@ -4,3 +4,5 @@ proxy_server:
 mock_server:
   port: 8081
   response_status_code: 200
+admin_server:
+  port: 8082

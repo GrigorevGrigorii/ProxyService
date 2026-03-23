@@ -15,6 +15,20 @@ services:
       - 127.0.0.1:8080:8080
     depends_on:
       - postgres
+  admin:
+    container_name: admin-api-server
+    build:
+      context: ..
+      dockerfile: build/package/Dockerfile
+      args:
+        SERVICE: admin-api-server
+        PORT: 8082
+    volumes:
+      - ../configs:/app/configs:ro
+    ports:
+      - 127.0.0.1:8082:8082
+    depends_on:
+      - postgres
   mock:
     container_name: mock-api-server
     build:

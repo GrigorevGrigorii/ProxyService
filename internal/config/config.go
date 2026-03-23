@@ -14,6 +14,10 @@ type MockServerConfig struct {
 	ResponseStatusCode int `mapstructure:"response_status_code"`
 }
 
+type AdminServerConfig struct {
+	Port int `mapstructure:"port"`
+}
+
 func newViper() *viper.Viper {
 	v := viper.New()
 	v.SetConfigName("config")
@@ -46,6 +50,20 @@ func LoadMockServer() (*MockServerConfig, error) {
 
 	var cfg MockServerConfig
 	if err := v.UnmarshalKey("mock_server", &cfg); err != nil {
+		return nil, err
+	}
+	return &cfg, nil
+}
+
+func LoadAdminServer() (*AdminServerConfig, error) {
+	v := newViper()
+	v.BindEnv("admin_server.port", "PORT")
+	if err := v.ReadInConfig(); err != nil {
+		return nil, err
+	}
+
+	var cfg AdminServerConfig
+	if err := v.UnmarshalKey("admin_server", &cfg); err != nil {
 		return nil, err
 	}
 	return &cfg, nil
