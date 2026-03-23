@@ -3,11 +3,14 @@ package main
 import (
 	"fmt"
 	"io"
-	"log"
 	"net/http"
+	"os"
 	"proxy-service/internal/config"
+	"proxy-service/internal/middlewares"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 type MockHandlers struct {
@@ -29,17 +32,30 @@ func (h *MockHandlers) mockHandler(c *gin.Context) {
 }
 
 func main() {
-	cfg, err := config.LoadMockServer()
-	if err != nil {
-		log.Fatal(err)
+	// Logging
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	if gin.Mode() == gin.DebugMode {
+		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
 
+	// Configs
+	cfg, err := config.LoadMockServer()
+	if err != nil {
+		log.Fatal().Msg(err.Error())
+	}
+
+	// Router
+	router := gin.New()
+	router.SetTrustedProxies(nil)
+
+	// Middlewares
+	router.Use(middlewares.RequestIDMiddleware())
+	router.Use(middlewares.ZerologMiddleware())
+
+	// Handlers
 	mockHandlers := MockHandlers{
 		cfg: cfg,
 	}
-
-	router := gin.Default()
-	router.SetTrustedProxies(nil)
 
 	router.GET("/ping", func(c *gin.Context) { c.IndentedJSON(http.StatusOK, gin.H{"status": "ok"}) })
 
@@ -48,5 +64,6 @@ func main() {
 	router.PUT("/mock", mockHandlers.mockHandler)
 	router.DELETE("/mock", mockHandlers.mockHandler)
 
+	// Server
 	router.Run(fmt.Sprintf(":%d", cfg.Port))
 }

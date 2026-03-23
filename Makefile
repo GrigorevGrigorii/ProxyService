@@ -1,3 +1,5 @@
+.PHONY: test butify start-proxy start-mock start-containers start-containers-with-build stop-containers
+
 butify:
 	go fmt ./internal ./cmd
 	golint -set_exit_status ./internal ./cmd

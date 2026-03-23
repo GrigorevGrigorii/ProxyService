@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 	"time"
+
+	"github.com/rs/zerolog/log"
 )
 
 type HTTPClient interface {
@@ -28,9 +30,16 @@ func (c *Client) Get(ctx context.Context, url string, timeout time.Duration, ret
 			return nil, err
 		}
 
+		log.Info().Msgf("Making GET request to %s", url)
 		resp, reqErr = httpClient.Do(req)
+		if reqErr != nil {
+			log.Error().Msgf("Error while making request to %s: %s", url, reqErr.Error())
+		} else if resp.StatusCode >= 400 {
+			log.Error().Msgf("Error %d while making request to %s", resp.StatusCode, url)
+		}
 
 		if currentRetryCount < retryCount-1 && (reqErr != nil || shouldRetry(resp)) {
+
 			if resp != nil {
 				resp.Body.Close()
 			}
