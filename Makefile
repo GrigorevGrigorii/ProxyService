@@ -1,4 +1,4 @@
-.PHONY: test butify start-proxy start-mock start-containers start-containers-with-build stop-containers
+.PHONY: test butify start-proxy start-mock start-containers start-containers-with-build stop-containers migrate
 
 butify:
 	go fmt ./internal ./cmd
@@ -23,3 +23,6 @@ start-containers-with-build:
 
 stop-containers:
 	docker compose -f test/docker-compose.yaml down
+
+migrate-local:
+	migrate -source file:internal/database/migrations -database 'postgresql://proxy_service_user:proxy_service_password@127.0.0.1:5432/proxy_service_db?sslmode=disable' up
