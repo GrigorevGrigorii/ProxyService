@@ -2,6 +2,7 @@
 name: proxy-service
 services:
   proxy:
+    container_name: proxy-api-server
     build:
       context: ..
       dockerfile: build/package/Dockerfile
@@ -12,7 +13,10 @@ services:
       - ../configs:/app/configs:ro
     ports:
       - 127.0.0.1:8080:8080
+    depends_on:
+      - postgres
   mock:
+    container_name: mock-api-server
     build:
       context: ..
       dockerfile: build/package/Dockerfile
@@ -23,3 +27,25 @@ services:
       - ../configs:/app/configs:ro
     ports:
       - 127.0.0.1:8081:8081
+  postgres:
+    image: postgres:latest
+    container_name: postgres-container
+    environment:
+      POSTGRES_USER: proxy_service_user
+      POSTGRES_PASSWORD: proxy_service_password
+      POSTGRES_DB: proxy_service_db
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data/pgdata
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U proxy_service_user -d proxy_service_db" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+    driver: local
