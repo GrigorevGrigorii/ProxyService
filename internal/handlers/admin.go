@@ -20,7 +20,7 @@ func (h *AdminHandlers) GetServices(c *gin.Context) {
 
 func (h *AdminHandlers) GetService(c *gin.Context) {
 	var service database.Service
-	result := h.DB.First(&service, "name = ?", c.Param("name"))
+	result := h.DB.Preload("Targets").First(&service, "name = ?", c.Param("name"))
 
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": fmt.Sprintf("Service with name '%s' not found", c.Param("name"))})
