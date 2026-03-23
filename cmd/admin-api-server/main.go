@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"proxy-service/internal/config"
+	"proxy-service/internal/database"
 	"proxy-service/internal/handlers"
 	"proxy-service/internal/middlewares"
 
@@ -26,6 +27,12 @@ func main() {
 		log.Fatal().Msg(err.Error())
 	}
 
+	// Postgres
+	db, err := database.InitDB(&cfg.PGConfig)
+	if err != nil {
+		log.Fatal().Msg(err.Error())
+	}
+
 	// Router
 	router := gin.New()
 	router.SetTrustedProxies(nil)
@@ -40,15 +47,17 @@ func main() {
 	router.Use(middlewares.ZerologMiddleware())
 
 	// Handlers
-	adminHandlers := handlers.AdminHandlers{}
+	adminHandlers := handlers.AdminHandlers{
+		DB: db,
+	}
 
 	router.GET("/ping", handlers.Ping)
 
 	router.GET("/api/admin/v1/service", adminHandlers.GetServices)
 	router.GET("/api/admin/v1/service/:name", adminHandlers.GetService)
 	router.POST("/api/admin/v1/service/:name", adminHandlers.CreateService)
-	router.PUT("/api/admin/v1/service/:service", adminHandlers.UpdateService)
-	router.DELETE("/api/admin/v1/service/:service", adminHandlers.DeleteService)
+	router.PUT("/api/admin/v1/service/:name", adminHandlers.UpdateService)
+	router.DELETE("/api/admin/v1/service/:name", adminHandlers.DeleteService)
 
 	// Server
 	router.Run(fmt.Sprintf(":%d", cfg.Port))

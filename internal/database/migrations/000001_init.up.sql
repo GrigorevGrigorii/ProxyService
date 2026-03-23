@@ -6,8 +6,8 @@ CREATE TABLE services(
     host VARCHAR(128) UNIQUE NOT NULL,
     scheme httpscheme NOT NULL,
     timeout NUMERIC(4, 2) NOT NULL,
-    retry_count INTEGER DEFAULT 0,
-    retry_interval NUMERIC(4, 2) DEFAULT 0.0
+    retry_count INTEGER DEFAULT 0 NOT NULL,
+    retry_interval NUMERIC(4, 2) DEFAULT 0.0 NOT NULL
 );
 
 CREATE TABLE targets(
