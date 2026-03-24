@@ -67,11 +67,11 @@ func TestGetServices(t *testing.T) {
 		t.Fatalf("unmet sql expectations: %v", err)
 	}
 	// Check resonse body
-	var got []database.Service
+	var got []ServiceDTO
 	if err := json.Unmarshal(w.Body.Bytes(), &got); err != nil {
 		t.Fatalf("failed to unmarshal response body: %v", err)
 	}
-	expected := []database.Service{
+	expected := []ServiceDTO{
 		{
 			Name:          "mock",
 			Scheme:        "http",
@@ -80,7 +80,7 @@ func TestGetServices(t *testing.T) {
 			RetryCount:    3,
 			RetryInterval: 0.1,
 			Version:       1,
-			Targets: []database.Target{
+			Targets: []TargetDTO{
 				{Path: "/mock", Method: "GET"},
 			},
 		},
@@ -136,11 +136,11 @@ func TestGetService(t *testing.T) {
 		t.Fatalf("unmet sql expectations: %v", err)
 	}
 	// Check resonse body
-	var got database.Service
+	var got ServiceDTO
 	if err := json.Unmarshal(w.Body.Bytes(), &got); err != nil {
 		t.Fatalf("failed to unmarshal response body: %v", err)
 	}
-	expected := database.Service{
+	expected := ServiceDTO{
 		Name:          "mock",
 		Scheme:        "http",
 		Host:          "localhost:8080",
@@ -148,7 +148,7 @@ func TestGetService(t *testing.T) {
 		RetryCount:    0,
 		RetryInterval: 0,
 		Version:       1,
-		Targets: []database.Target{
+		Targets: []TargetDTO{
 			{Path: "/mock", Method: "GET"},
 		},
 	}

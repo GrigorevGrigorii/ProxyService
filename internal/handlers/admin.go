@@ -20,7 +20,12 @@ func (h *AdminHandlers) GetServices(c *gin.Context) {
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, services)
+	response := make([]ServiceDTO, len(services))
+	for i, service := range services {
+		response[i] = serviceDTOFromDBModel(service)
+	}
+
+	c.IndentedJSON(http.StatusOK, response)
 }
 
 func (h *AdminHandlers) GetService(c *gin.Context) {
@@ -34,17 +39,18 @@ func (h *AdminHandlers) GetService(c *gin.Context) {
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, service)
+	c.IndentedJSON(http.StatusOK, serviceDTOFromDBModel(*service))
 }
 
 func (h *AdminHandlers) CreateService(c *gin.Context) {
-	var service database.Service
+	var request ServiceDTO
 
-	if err := c.BindJSON(&service); err != nil {
+	if err := c.BindJSON(&request); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
+	service := serviceDBModelFromDTO(request)
 	err := h.DBRepository.Create(&service)
 	if errors.Is(err, database.ErrAlreadyExists) {
 		c.IndentedJSON(http.StatusConflict, gin.H{"message": fmt.Sprintf("Service '%s' already exists", service.Name)})
@@ -59,18 +65,19 @@ func (h *AdminHandlers) CreateService(c *gin.Context) {
 }
 
 func (h *AdminHandlers) UpdateService(c *gin.Context) {
-	var service database.Service
+	var request ServiceDTO
 
-	if err := c.BindJSON(&service); err != nil {
+	if err := c.BindJSON(&request); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
-	if service.Name != c.Param("name") {
+	if request.Name != c.Param("name") {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Connot update name"})
 		return
 	}
 
+	service := serviceDBModelFromDTO(request)
 	err := h.DBRepository.Update(&service)
 	if errors.Is(err, database.ErrNotFound) {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": fmt.Sprintf("Service '%s' not found", c.Param("name"))})
