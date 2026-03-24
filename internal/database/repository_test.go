@@ -31,6 +31,7 @@ func setupRepositoryTest(t *testing.T) (*DBRepository, sqlmock.Sqlmock) {
 func TestDBRepositoryGetAll(t *testing.T) {
 	repo, mock := setupRepositoryTest(t)
 
+	mock.ExpectBegin()
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "services"`)).
 		WillReturnRows(sqlmock.NewRows([]string{
 			"name", "scheme", "host", "timeout", "retry_count", "retry_interval", "version",
@@ -38,6 +39,7 @@ func TestDBRepositoryGetAll(t *testing.T) {
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "targets" WHERE "targets"."service_name" = $1`)).
 		WithArgs("mock").
 		WillReturnRows(sqlmock.NewRows([]string{"service_name", "path", "method"}).AddRow("mock", "/mock", "GET"))
+	mock.ExpectCommit()
 
 	services, err := repo.GetAll()
 	if err != nil {
@@ -165,7 +167,7 @@ func TestDBRepositoryDelete(t *testing.T) {
 	repo, mock := setupRepositoryTest(t)
 
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta(`DELETE FROM "services" WHERE "services"."name" = $1`)).
+	mock.ExpectExec(regexp.QuoteMeta(`DELETE FROM "services" WHERE name = $1`)).
 		WithArgs("mock").
 		WillReturnResult(driver.RowsAffected(1))
 	mock.ExpectCommit()
