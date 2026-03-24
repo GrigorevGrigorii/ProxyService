@@ -94,10 +94,7 @@ In `debug` mode, logs are also printed to stderr via a console writer.
 ## PostgreSQL
 `test/docker-compose.yaml` starts PostgreSQL alongside the services.
 
-Schema is defined in `internal/database/migrations` and currently creates:
-
-- `services` table (service name, host, scheme, timeout, retry settings)
-- `targets` table (allowed `(service_name, path, method)` routes)
+Schema is defined in `internal/database/migrations`
 
 The proxy/admin services use PostgreSQL as the source of truth for service allowlists.
 
@@ -106,7 +103,7 @@ If you want to initialize the DB locally, the repo includes:
 make migrate-local
 ```
 
-Note: this requires the `migrate` CLI to be installed.
+Note: this requires the `golang-migrate` CLI to be installed.
 
 ## Admin API payloads
 ### Create service
@@ -132,43 +129,6 @@ Note: this requires the `migrate` CLI to be installed.
 Request body has the same shape as create, plus `version` for optimistic locking.
 
 ## How to run
-### Local run (Go)
-
-Terminal 1:
-```bash
-make start-mock
-```
-
-Terminal 2:
-```bash
-make start-proxy
-```
-
-Terminal 3:
-```bash
-make start-admin
-```
-
-Test with curl:
-```bash
-curl "http://localhost:8080/api/proxy/v1/mock/mock?x=1"
-```
-
-Create upstream allowlist entry (example):
-```bash
-curl -X POST "http://localhost:8082/api/admin/v1/service" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name":"mock",
-    "scheme":"http",
-    "host":"mock:8081",
-    "timeout":10.0,
-    "retry_count":3,
-    "retry_interval":0.1,
-    "targets":[{"path":"/mock","method":"GET"}]
-  }'
-```
-
 ### Local run (Docker Compose)
 ```bash
 make start-containers-with-build
@@ -186,9 +146,3 @@ Run unit tests:
 ```bash
 make test
 ```
-
-There are tests for:
-
-- Admin handlers CRUD behavior (with SQL mocking)
-- Proxy routing allowlist logic through PostgreSQL repository
-- GET proxy forwarding behavior (including context cancellation and error propagation)
