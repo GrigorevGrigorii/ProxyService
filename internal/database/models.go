@@ -15,6 +15,7 @@ type Service struct {
 	Timeout       float32 `json:"timeout" gorm:"column:timeout;type:numeric(4,2);not null"`
 	RetryCount    int     `json:"retry_count" gorm:"column:retry_count;not null;default:0"`
 	RetryInterval float32 `json:"retry_interval" gorm:"column:retry_interval;type:numeric(4,2);not null;default:0.0"`
+	Version       int     `json:"version" gorm:"column:version;not null;default:0"`
 
 	Targets []Target `json:"targets" gorm:"foreignKey:ServiceName;references:Name;constraint:OnDelete:CASCADE;"`
 }

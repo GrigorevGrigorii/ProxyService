@@ -36,7 +36,7 @@ func InitDB(cfg *config.PGConfig) (*gorm.DB, error) {
 		Path:     cfg.Database,
 		RawQuery: "sslmode=" + cfg.SSLMode,
 	}
-	db, err := gorm.Open(postgres.Open(pgDsn.String()), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(pgDsn.String()), &gorm.Config{TranslateError: true})
 	if err != nil {
 		return nil, err
 	}
