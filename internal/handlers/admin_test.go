@@ -33,7 +33,7 @@ func setupAdminTest(t *testing.T) (sqlmock.Sqlmock, *gin.Engine) {
 		t.Fatalf("failed to open gorm db: %v", err)
 	}
 
-	h := &AdminHandlers{DB: db}
+	h := &AdminHandlers{Repository: &database.DBRepository{DB: db}}
 	r := gin.New()
 	r.GET("/service", h.GetServices)
 	r.GET("/service/:name", h.GetService)
