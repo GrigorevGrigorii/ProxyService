@@ -47,9 +47,8 @@ func main() {
 	router.Use(middlewares.ZerologMiddleware())
 
 	// Handlers
-	repository := database.DBRepository{DB: db}
 	adminHandlers := handlers.AdminHandlers{
-		Repository: &repository,
+		DBRepository: &database.DBRepository{DB: db},
 	}
 
 	router.GET("/ping", handlers.Ping)

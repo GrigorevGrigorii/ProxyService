@@ -5,6 +5,7 @@ import (
 	"os"
 	"proxy-service/internal/client"
 	"proxy-service/internal/config"
+	"proxy-service/internal/database"
 	"proxy-service/internal/handlers"
 	"proxy-service/internal/middlewares"
 
@@ -27,7 +28,8 @@ func main() {
 		log.Fatal().Msg(err.Error())
 	}
 
-	services, err := config.LoadServices(cfg.ServicesPath)
+	// Postgres
+	db, err := database.InitDB(&cfg.PGConfig)
 	if err != nil {
 		log.Fatal().Msg(err.Error())
 	}
@@ -47,8 +49,8 @@ func main() {
 
 	// Handlers
 	proxyHandlers := handlers.ProxyHandlers{
-		Services:   services,
-		HTTPClient: &client.Client{},
+		DBRepository: &database.DBRepository{DB: db},
+		HTTPClient:   &client.Client{},
 	}
 
 	router.GET("/ping", handlers.Ping)

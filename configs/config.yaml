@@ -1,6 +1,12 @@
 proxy_server:
   port: 8080
-  services_path: ./configs/services.yaml
+  pg:
+    user: proxy_service_user
+    password: proxy_service_password
+    host: postgres
+    port: 5432
+    database: proxy_service_db
+    sslmode: disable
 mock_server:
   port: 8081
   response_status_code: 200

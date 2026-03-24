@@ -14,8 +14,8 @@ type PGConfig struct {
 }
 
 type ProxyServerConfig struct {
-	Port         int    `mapstructure:"port"`
-	ServicesPath string `mapstructure:"services_path"`
+	Port     int      `mapstructure:"port"`
+	PGConfig PGConfig `mapstructure:"pg"`
 }
 
 type MockServerConfig struct {
@@ -24,8 +24,8 @@ type MockServerConfig struct {
 }
 
 type AdminServerConfig struct {
-	PGConfig PGConfig `mapstructure:"pg"`
 	Port     int      `mapstructure:"port"`
+	PGConfig PGConfig `mapstructure:"pg"`
 }
 
 func newViper() *viper.Viper {

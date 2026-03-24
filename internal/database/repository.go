@@ -39,6 +39,19 @@ func (r *DBRepository) Get(name string) (*Service, error) {
 	return &service, nil
 }
 
+func (r *DBRepository) GetFiltered(name, path, method string) (*Service, error) {
+	var service Service
+
+	err := r.DB.Transaction(func(tx *gorm.DB) error {
+		return tx.Preload("Targets", "path = ? AND method = ?", path, method).First(&service, "name = ?", name).Error
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &service, nil
+}
+
 func (r *DBRepository) Create(service *Service) error {
 	return r.DB.Transaction(func(tx *gorm.DB) error {
 		return tx.Create(service).Error
