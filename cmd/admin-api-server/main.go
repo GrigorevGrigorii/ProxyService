@@ -55,7 +55,7 @@ func main() {
 
 	router.GET("/api/admin/v1/service", adminHandlers.GetServices)
 	router.GET("/api/admin/v1/service/:name", adminHandlers.GetService)
-	router.POST("/api/admin/v1/service/:name", adminHandlers.CreateService)
+	router.POST("/api/admin/v1/service", adminHandlers.CreateService)
 	router.PUT("/api/admin/v1/service/:name", adminHandlers.UpdateService)
 	router.DELETE("/api/admin/v1/service/:name", adminHandlers.DeleteService)
 
