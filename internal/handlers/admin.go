@@ -10,7 +10,7 @@ import (
 )
 
 type AdminHandlers struct {
-	DBRepository *database.DBRepository
+	DBRepository database.Repository
 }
 
 func (h *AdminHandlers) GetServices(c *gin.Context) {

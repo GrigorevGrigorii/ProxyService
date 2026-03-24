@@ -12,6 +12,15 @@ var (
 	ErrAlreadyExists   = gorm.ErrDuplicatedKey
 )
 
+type Repository interface {
+	GetAll() ([]Service, error)
+	Get(name string) (*Service, error)
+	GetFiltered(name, path, method string) (*Service, error)
+	Create(service *Service) error
+	Update(service *Service) error
+	Delete(name string) error
+}
+
 type DBRepository struct {
 	DB *gorm.DB
 }

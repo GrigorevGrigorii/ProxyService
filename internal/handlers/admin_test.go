@@ -2,59 +2,95 @@ package handlers
 
 import (
 	"bytes"
-	"database/sql/driver"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"proxy-service/internal/database"
 	"reflect"
-	"regexp"
 	"testing"
 
-	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/gin-gonic/gin"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 )
 
-func setupAdminTest(t *testing.T) (sqlmock.Sqlmock, *gin.Engine) {
-	t.Helper()
+type stubAdminRepository struct {
+	getAllFn func() ([]database.Service, error)
+	getFn    func(name string) (*database.Service, error)
+	createFn func(service *database.Service) error
+	updateFn func(service *database.Service) error
+	deleteFn func(name string) error
+}
 
+func (s *stubAdminRepository) GetAll() ([]database.Service, error) {
+	if s.getAllFn == nil {
+		return nil, errors.New("unexpected GetAll call")
+	}
+	return s.getAllFn()
+}
+
+func (s *stubAdminRepository) Get(name string) (*database.Service, error) {
+	if s.getFn == nil {
+		return nil, errors.New("unexpected Get call")
+	}
+	return s.getFn(name)
+}
+
+func (s *stubAdminRepository) GetFiltered(name, path, method string) (*database.Service, error) {
+	return nil, errors.New("unexpected GetFiltered call")
+}
+
+func (s *stubAdminRepository) Create(service *database.Service) error {
+	if s.createFn == nil {
+		return errors.New("unexpected Create call")
+	}
+	return s.createFn(service)
+}
+
+func (s *stubAdminRepository) Update(service *database.Service) error {
+	if s.updateFn == nil {
+		return errors.New("unexpected Update call")
+	}
+	return s.updateFn(service)
+}
+
+func (s *stubAdminRepository) Delete(name string) error {
+	if s.deleteFn == nil {
+		return errors.New("unexpected Delete call")
+	}
+	return s.deleteFn(name)
+}
+
+func setupAdminTest(repo database.Repository) *gin.Engine {
 	gin.SetMode(gin.TestMode)
-
-	sqlDB, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("failed to create sqlmock: %v", err)
-	}
-	t.Cleanup(func() { _ = sqlDB.Close() })
-
-	db, err := gorm.Open(postgres.New(postgres.Config{Conn: sqlDB}), &gorm.Config{TranslateError: true})
-	if err != nil {
-		t.Fatalf("failed to open gorm db: %v", err)
-	}
-
-	h := &AdminHandlers{DBRepository: &database.DBRepository{DB: db}}
+	h := &AdminHandlers{DBRepository: repo}
 	r := gin.New()
 	r.GET("/service", h.GetServices)
 	r.GET("/service/:name", h.GetService)
 	r.POST("/service", h.CreateService)
 	r.PUT("/service/:name", h.UpdateService)
 	r.DELETE("/service/:name", h.DeleteService)
-
-	return mock, r
+	return r
 }
 
 func TestGetServices(t *testing.T) {
-	mock, router := setupAdminTest(t)
-
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "services"`)).
-		WillReturnRows(sqlmock.NewRows([]string{
-			"name", "scheme", "host", "timeout", "retry_count", "retry_interval", "version",
-		}).AddRow("mock", "http", "localhost:8080", 10.0, 3, 0.1, 1))
-
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "targets" WHERE "targets"."service_name" = $1`)).
-		WithArgs("mock").
-		WillReturnRows(sqlmock.NewRows([]string{"service_name", "path", "method"}).AddRow("mock", "/mock", "GET"))
+	router := setupAdminTest(&stubAdminRepository{
+		getAllFn: func() ([]database.Service, error) {
+			return []database.Service{
+				{
+					Name:          "mock",
+					Scheme:        "http",
+					Host:          "localhost:8080",
+					Timeout:       10.0,
+					RetryCount:    3,
+					RetryInterval: 0.1,
+					Version:       1,
+					Targets: []database.Target{
+						{ServiceName: "mock", Path: "/mock", Method: "GET"},
+					},
+				},
+			}, nil
+		},
+	})
 
 	req := httptest.NewRequest(http.MethodGet, "/service", nil)
 	w := httptest.NewRecorder()
@@ -62,9 +98,6 @@ func TestGetServices(t *testing.T) {
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected status %d, got %d", http.StatusOK, w.Code)
-	}
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Fatalf("unmet sql expectations: %v", err)
 	}
 	// Check resonse body
 	var got []ServiceDTO
@@ -91,13 +124,14 @@ func TestGetServices(t *testing.T) {
 }
 
 func TestGetServiceNotFound(t *testing.T) {
-	mock, router := setupAdminTest(t)
-
-	mock.ExpectBegin()
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "services" WHERE name = $1 ORDER BY "services"."name" LIMIT $2`)).
-		WithArgs("missing", 1).
-		WillReturnError(gorm.ErrRecordNotFound)
-	mock.ExpectRollback()
+	router := setupAdminTest(&stubAdminRepository{
+		getFn: func(name string) (*database.Service, error) {
+			if name != "missing" {
+				t.Fatalf("expected service name %q, got %q", "missing", name)
+			}
+			return nil, database.ErrNotFound
+		},
+	})
 
 	req := httptest.NewRequest(http.MethodGet, "/service/missing", nil)
 	w := httptest.NewRecorder()
@@ -106,24 +140,28 @@ func TestGetServiceNotFound(t *testing.T) {
 	if w.Code != http.StatusNotFound {
 		t.Fatalf("expected status %d, got %d", http.StatusNotFound, w.Code)
 	}
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Fatalf("unmet sql expectations: %v", err)
-	}
 }
 
 func TestGetService(t *testing.T) {
-	mock, router := setupAdminTest(t)
-
-	mock.ExpectBegin()
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "services" WHERE name = $1 ORDER BY "services"."name" LIMIT $2`)).
-		WithArgs("mock", 1).
-		WillReturnRows(sqlmock.NewRows([]string{
-			"name", "scheme", "host", "timeout", "retry_count", "retry_interval", "version",
-		}).AddRow("mock", "http", "localhost:8080", 1.5, 0, 0, 1))
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "targets" WHERE "targets"."service_name" = $1`)).
-		WithArgs("mock").
-		WillReturnRows(sqlmock.NewRows([]string{"service_name", "path", "method"}).AddRow("mock", "/mock", "GET"))
-	mock.ExpectCommit()
+	router := setupAdminTest(&stubAdminRepository{
+		getFn: func(name string) (*database.Service, error) {
+			if name != "mock" {
+				t.Fatalf("expected service name %q, got %q", "mock", name)
+			}
+			return &database.Service{
+				Name:          "mock",
+				Scheme:        "http",
+				Host:          "localhost:8080",
+				Timeout:       1.5,
+				RetryCount:    0,
+				RetryInterval: 0,
+				Version:       1,
+				Targets: []database.Target{
+					{ServiceName: "mock", Path: "/mock", Method: "GET"},
+				},
+			}, nil
+		},
+	})
 
 	req := httptest.NewRequest(http.MethodGet, "/service/mock", nil)
 	w := httptest.NewRecorder()
@@ -131,9 +169,6 @@ func TestGetService(t *testing.T) {
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected status %d, got %d", http.StatusOK, w.Code)
-	}
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Fatalf("unmet sql expectations: %v", err)
 	}
 	// Check resonse body
 	var got ServiceDTO
@@ -158,13 +193,14 @@ func TestGetService(t *testing.T) {
 }
 
 func TestCreateServiceDuplicate(t *testing.T) {
-	mock, router := setupAdminTest(t)
-
-	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO "services" ("name","scheme","host","timeout","retry_count","retry_interval","version") VALUES ($1,$2,$3,$4,$5,$6,$7)`)).
-		WithArgs("mock", "http", "localhost:8081", 10.0, 3, 0.5, 0).
-		WillReturnError(gorm.ErrDuplicatedKey)
-	mock.ExpectRollback()
+	router := setupAdminTest(&stubAdminRepository{
+		createFn: func(service *database.Service) error {
+			if service.Name != "mock" {
+				t.Fatalf("unexpected service name: %s", service.Name)
+			}
+			return database.ErrAlreadyExists
+		},
+	})
 
 	body := []byte(`{
 		"name":"mock",
@@ -182,21 +218,17 @@ func TestCreateServiceDuplicate(t *testing.T) {
 	if w.Code != http.StatusConflict {
 		t.Fatalf("expected status %d, got %d", http.StatusConflict, w.Code)
 	}
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Fatalf("unmet sql expectations: %v", err)
-	}
 }
 
 func TestUpdateServiceVersionMismatch(t *testing.T) {
-	mock, router := setupAdminTest(t)
-
-	mock.ExpectBegin()
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "services" WHERE name = $1 ORDER BY "services"."name" LIMIT $2`)).
-		WithArgs("mock", 1).
-		WillReturnRows(sqlmock.NewRows([]string{
-			"name", "scheme", "host", "timeout", "retry_count", "retry_interval", "version",
-		}).AddRow("mock", "http", "localhost:8081", 10.0, 2, 0.5, 3))
-	mock.ExpectRollback()
+	router := setupAdminTest(&stubAdminRepository{
+		updateFn: func(service *database.Service) error {
+			if service.Name != "mock" {
+				t.Fatalf("unexpected service name: %s", service.Name)
+			}
+			return database.ErrVersionMismatch
+		},
+	})
 
 	body := []byte(`{
 		"name":"mock",
@@ -216,19 +248,17 @@ func TestUpdateServiceVersionMismatch(t *testing.T) {
 	if w.Code != http.StatusConflict {
 		t.Fatalf("expected status %d, got %d", http.StatusConflict, w.Code)
 	}
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Fatalf("unmet sql expectations: %v", err)
-	}
 }
 
 func TestDeleteService(t *testing.T) {
-	mock, router := setupAdminTest(t)
-
-	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta(`DELETE FROM "services" WHERE "services"."name" = $1`)).
-		WithArgs("mock").
-		WillReturnResult(driver.RowsAffected(1))
-	mock.ExpectCommit()
+	router := setupAdminTest(&stubAdminRepository{
+		deleteFn: func(name string) error {
+			if name != "mock" {
+				t.Fatalf("expected service name %q, got %q", "mock", name)
+			}
+			return nil
+		},
+	})
 
 	req := httptest.NewRequest(http.MethodDelete, "/service/mock", nil)
 	w := httptest.NewRecorder()
@@ -244,8 +274,5 @@ func TestDeleteService(t *testing.T) {
 	expected := map[string]string{"message": "ok"}
 	if !reflect.DeepEqual(got, expected) {
 		t.Fatalf("unexpected response body: %s", w.Body.String())
-	}
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Fatalf("unmet sql expectations: %v", err)
 	}
 }

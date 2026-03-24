@@ -12,7 +12,7 @@ import (
 )
 
 type ProxyHandlers struct {
-	DBRepository *database.DBRepository
+	DBRepository database.Repository
 	HTTPClient   client.HTTPClient
 }
 
