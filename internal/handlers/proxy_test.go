@@ -7,78 +7,16 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"proxy-service/internal/config"
-	"reflect"
+	"proxy-service/internal/database"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/gin-gonic/gin"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
-
-func TestAllowedToProxy(t *testing.T) {
-	// config that allows only requests to "mock" service with "GET" method and "/mock" path
-	service := config.Service{
-		Name: "mock",
-		Targets: []config.Target{
-			{
-				Path:   "/mock",
-				Method: "GET",
-			},
-		},
-	}
-	service.FillTargetsSet()
-	var servicesMap = map[string]config.Service{"mock": service}
-
-	handlers := ProxyHandlers{
-		Services: servicesMap,
-	}
-
-	tests := []struct {
-		serviceName string
-		method      string
-		path        string
-		want        *config.Service
-	}{
-		{
-			serviceName: "mock",
-			method:      http.MethodGet,
-			path:        "/mock",
-			want:        &service,
-		},
-		{
-			serviceName: "unknown", // not allowed by config
-			method:      http.MethodGet,
-			path:        "/mock",
-			want:        nil,
-		},
-		{
-			serviceName: "mock",
-			method:      http.MethodPost, // not allowed by config
-			path:        "/mock",
-			want:        nil,
-		},
-		{
-			serviceName: "mock",
-			method:      http.MethodGet,
-			path:        "/another/path", // not allowed by config
-			want:        nil,
-		},
-	}
-
-	for i, tt := range tests {
-		t.Run(fmt.Sprintf("Test %d", i), func(t *testing.T) {
-			got := handlers.getAllowedService(tt.serviceName, tt.method, tt.path)
-			if (tt.want == nil) != (got == nil) { // both nil or both not nil
-				t.Errorf("For service=%v, method=%v, path=%v got %v, but expected %v", tt.serviceName, tt.method, tt.path, got, tt.want)
-				return
-			}
-			if tt.want != nil && !reflect.DeepEqual(*got, *tt.want) {
-				t.Errorf("For service=%v, method=%v, path=%v got %v, but expected %v", tt.serviceName, tt.method, tt.path, got, tt.want)
-			}
-		})
-	}
-}
 
 type stubHttpClient struct {
 	passedCtx           context.Context
@@ -119,26 +57,74 @@ func testProxyGETRouter(h ProxyHandlers) *gin.Engine {
 	return r
 }
 
-func testServiceForProxy() config.Service {
-	s := config.Service{
+func testServiceForProxy() database.Service {
+	return database.Service{
 		Name:          "mock",
 		Scheme:        "http",
 		Host:          "upstream.example",
-		Targets:       []config.Target{{Path: "/mock", Method: "GET"}},
+		Targets:       []database.Target{{Path: "/mock", Method: "GET"}},
 		Timeout:       1,
 		RetryCount:    1,
 		RetryInterval: 0,
 	}
-	s.FillTargetsSet()
-	return s
+}
+
+func newMockRepository(t *testing.T) (*database.DBRepository, sqlmock.Sqlmock) {
+	t.Helper()
+
+	sqlDB, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("sqlmock.New: %v", err)
+	}
+	t.Cleanup(func() {
+		_ = sqlDB.Close()
+	})
+
+	gdb, err := gorm.Open(postgres.New(postgres.Config{
+		Conn:                 sqlDB,
+		PreferSimpleProtocol: true,
+	}), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("gorm.Open: %v", err)
+	}
+
+	t.Cleanup(func() {
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Fatalf("unmet sql expectations: %v", err)
+		}
+	})
+
+	return &database.DBRepository{DB: gdb}, mock
+}
+
+func expectGetFilteredSuccess(mock sqlmock.Sqlmock, svc database.Service, path, method string) {
+	mock.ExpectBegin()
+	mock.ExpectQuery(`SELECT \* FROM "services" WHERE name = \$1 ORDER BY "services"\."name" LIMIT \$2`).
+		WithArgs(svc.Name, 1).
+		WillReturnRows(sqlmock.NewRows([]string{"name", "scheme", "host", "timeout", "retry_count", "retry_interval", "version"}).
+			AddRow(svc.Name, svc.Scheme, svc.Host, svc.Timeout, svc.RetryCount, svc.RetryInterval, svc.Version))
+	mock.ExpectQuery(`SELECT \* FROM "targets" WHERE "targets"\."service_name" = \$1 AND \(path = \$2 AND method = \$3\)`).
+		WithArgs(svc.Name, path, method).
+		WillReturnRows(sqlmock.NewRows([]string{"service_name", "path", "method"}).
+			AddRow(svc.Name, path, method))
+	mock.ExpectCommit()
+}
+
+func expectGetFilteredError(mock sqlmock.Sqlmock, serviceName string, err error) {
+	mock.ExpectBegin()
+	mock.ExpectQuery(`SELECT \* FROM "services" WHERE name = \$1 ORDER BY "services"\."name" LIMIT \$2`).
+		WithArgs(serviceName, 1).
+		WillReturnError(err)
+	mock.ExpectRollback()
 }
 
 func TestProxyGetRequest_NotAllowedService(t *testing.T) {
-	svc := testServiceForProxy()
-	services := map[string]config.Service{"mock": svc}
+	repo, mock := newMockRepository(t)
+	expectGetFilteredError(mock, "not-allowed", database.ErrNotFound)
+
 	h := ProxyHandlers{
-		Services:   services,
-		HTTPClient: &stubHttpClient{resp: httpResp(http.StatusOK, "no")},
+		DBRepository: repo,
+		HTTPClient:   &stubHttpClient{resp: httpResp(http.StatusOK, "no")},
 	}
 	r := testProxyGETRouter(h)
 
@@ -152,12 +138,14 @@ func TestProxyGetRequest_NotAllowedService(t *testing.T) {
 }
 
 func TestProxyGetRequest_ProxyResponseData(t *testing.T) {
-	service := testServiceForProxy()
-	services := map[string]config.Service{service.Name: service}
+	svc := testServiceForProxy()
+	repo, mock := newMockRepository(t)
+	expectGetFilteredSuccess(mock, svc, "/mock", http.MethodGet)
+
 	stub := &stubHttpClient{resp: httpResp(http.StatusNotFound, "upstream-body")}
 	h := ProxyHandlers{
-		Services:   services,
-		HTTPClient: stub,
+		DBRepository: repo,
+		HTTPClient:   stub,
 	}
 	r := testProxyGETRouter(h)
 
@@ -169,13 +157,13 @@ func TestProxyGetRequest_ProxyResponseData(t *testing.T) {
 	if stub.passedURL != wantURL {
 		t.Fatalf("got URL = %q, want %q", stub.passedURL, wantURL)
 	}
-	if stub.passedTimeout != time.Duration(service.Timeout*float32(time.Second)) {
+	if stub.passedTimeout != time.Duration(svc.Timeout*float32(time.Second)) {
 		t.Fatalf("got timeout = %q, want %q", stub.passedURL, wantURL)
 	}
-	if stub.passedRetryCount != service.RetryCount {
+	if stub.passedRetryCount != uint8(svc.RetryCount) {
 		t.Fatalf("got retry count = %q, want %q", stub.passedURL, wantURL)
 	}
-	if stub.passedRetryInterval != time.Duration(service.RetryInterval*float32(time.Second)) {
+	if stub.passedRetryInterval != time.Duration(svc.RetryInterval*float32(time.Second)) {
 		t.Fatalf("got retry interval = %q, want %q", stub.passedURL, wantURL)
 	}
 	if rec.Code != http.StatusNotFound {
@@ -188,10 +176,12 @@ func TestProxyGetRequest_ProxyResponseData(t *testing.T) {
 
 func TestProxyGetRequest_ContextCancelled(t *testing.T) {
 	svc := testServiceForProxy()
-	services := map[string]config.Service{"mock": svc}
+	repo, mock := newMockRepository(t)
+	expectGetFilteredSuccess(mock, svc, "/mock", http.MethodGet)
+
 	h := ProxyHandlers{
-		Services:   services,
-		HTTPClient: &stubHttpClient{resp: httpResp(http.StatusOK, "ok")},
+		DBRepository: repo,
+		HTTPClient:   &stubHttpClient{resp: httpResp(http.StatusOK, "ok")},
 	}
 	r := testProxyGETRouter(h)
 
@@ -216,11 +206,13 @@ func TestProxyGetRequest_ContextCancelled(t *testing.T) {
 
 func TestProxyGetRequest_ClientError(t *testing.T) {
 	svc := testServiceForProxy()
-	services := map[string]config.Service{"mock": svc}
+	repo, mock := newMockRepository(t)
+	expectGetFilteredSuccess(mock, svc, "/mock", http.MethodGet)
+
 	stub := &stubHttpClient{err: fmt.Errorf("connection refused")}
 	h := ProxyHandlers{
-		Services:   services,
-		HTTPClient: stub,
+		DBRepository: repo,
+		HTTPClient:   stub,
 	}
 	r := testProxyGETRouter(h)
 
