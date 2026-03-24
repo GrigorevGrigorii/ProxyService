@@ -14,20 +14,19 @@ var (
 )
 
 type Repository interface {
-	GetAll() ([]Service, error)
-	Get(name string) (*Service, error)
-	GetFiltered(name, path, method string) (*Service, error)
-	Create(service *Service) error
-	Update(service *Service) error
-	Delete(name string) error
+	GetAll(ctx context.Context) ([]Service, error)
+	Get(ctx context.Context, name string) (*Service, error)
+	GetFiltered(ctx context.Context, name, path, method string) (*Service, error)
+	Create(ctx context.Context, service *Service) error
+	Update(ctx context.Context, service *Service) error
+	Delete(ctx context.Context, name string) error
 }
 
 type DBRepository struct {
 	DB *gorm.DB
 }
 
-func (r *DBRepository) GetAll() ([]Service, error) {
-	ctx := context.Background()
+func (r *DBRepository) GetAll(ctx context.Context) ([]Service, error) {
 	var result []Service
 
 	err := r.DB.Transaction(func(tx *gorm.DB) error {
@@ -42,8 +41,7 @@ func (r *DBRepository) GetAll() ([]Service, error) {
 	return result, err
 }
 
-func (r *DBRepository) Get(name string) (*Service, error) {
-	ctx := context.Background()
+func (r *DBRepository) Get(ctx context.Context, name string) (*Service, error) {
 	var result *Service
 
 	err := r.DB.Transaction(func(tx *gorm.DB) error {
@@ -58,8 +56,7 @@ func (r *DBRepository) Get(name string) (*Service, error) {
 	return result, err
 }
 
-func (r *DBRepository) GetFiltered(name, path, method string) (*Service, error) {
-	ctx := context.Background()
+func (r *DBRepository) GetFiltered(ctx context.Context, name, path, method string) (*Service, error) {
 	var result *Service
 
 	err := r.DB.Transaction(func(tx *gorm.DB) error {
@@ -77,15 +74,13 @@ func (r *DBRepository) GetFiltered(name, path, method string) (*Service, error) 
 	return result, err
 }
 
-func (r *DBRepository) Create(service *Service) error {
-	ctx := context.Background()
+func (r *DBRepository) Create(ctx context.Context, service *Service) error {
 	return r.DB.Transaction(func(tx *gorm.DB) error {
 		return gorm.G[Service](tx).Create(ctx, service)
 	})
 }
 
-func (r *DBRepository) Update(service *Service) error {
-	ctx := context.Background()
+func (r *DBRepository) Update(ctx context.Context, service *Service) error {
 	return r.DB.Transaction(func(tx *gorm.DB) error {
 		tmpService, err := gorm.G[Service](tx).Where("name = ?", service.Name).First(ctx)
 		if err != nil {
@@ -115,8 +110,7 @@ func (r *DBRepository) Update(service *Service) error {
 	})
 }
 
-func (r *DBRepository) Delete(name string) error {
-	ctx := context.Background()
+func (r *DBRepository) Delete(ctx context.Context, name string) error {
 	_, err := gorm.G[Service](r.DB).Where("name = ?", name).Delete(ctx)
 	return err
 }

@@ -68,40 +68,40 @@ func testServiceForProxy() database.Service {
 }
 
 type stubProxyRepository struct {
-	getFilteredFn func(name, path, method string) (*database.Service, error)
+	getFilteredFn func(ctx context.Context, name, path, method string) (*database.Service, error)
 }
 
-func (s *stubProxyRepository) GetAll() ([]database.Service, error) {
+func (s *stubProxyRepository) GetAll(ctx context.Context) ([]database.Service, error) {
 	return nil, errors.New("unexpected GetAll call")
 }
 
-func (s *stubProxyRepository) Get(name string) (*database.Service, error) {
+func (s *stubProxyRepository) Get(ctx context.Context, name string) (*database.Service, error) {
 	return nil, errors.New("unexpected Get call")
 }
 
-func (s *stubProxyRepository) GetFiltered(name, path, method string) (*database.Service, error) {
+func (s *stubProxyRepository) GetFiltered(ctx context.Context, name, path, method string) (*database.Service, error) {
 	if s.getFilteredFn == nil {
 		return nil, errors.New("unexpected GetFiltered call")
 	}
-	return s.getFilteredFn(name, path, method)
+	return s.getFilteredFn(ctx, name, path, method)
 }
 
-func (s *stubProxyRepository) Create(service *database.Service) error {
+func (s *stubProxyRepository) Create(ctx context.Context, service *database.Service) error {
 	return errors.New("unexpected Create call")
 }
 
-func (s *stubProxyRepository) Update(service *database.Service) error {
+func (s *stubProxyRepository) Update(ctx context.Context, service *database.Service) error {
 	return errors.New("unexpected Update call")
 }
 
-func (s *stubProxyRepository) Delete(name string) error {
+func (s *stubProxyRepository) Delete(ctx context.Context, name string) error {
 	return errors.New("unexpected Delete call")
 }
 
 func TestProxyGetRequest_NotAllowedService(t *testing.T) {
 	h := ProxyHandlers{
 		DBRepository: &stubProxyRepository{
-			getFilteredFn: func(name, path, method string) (*database.Service, error) {
+			getFilteredFn: func(ctx context.Context, name, path, method string) (*database.Service, error) {
 				if name != "not-allowed" || path != "/path" || method != http.MethodGet {
 					t.Fatalf("unexpected args: %s %s %s", name, path, method)
 				}
@@ -127,7 +127,7 @@ func TestProxyGetRequest_ProxyResponseData(t *testing.T) {
 	stub := &stubHttpClient{resp: httpResp(http.StatusNotFound, "upstream-body")}
 	h := ProxyHandlers{
 		DBRepository: &stubProxyRepository{
-			getFilteredFn: func(name, path, method string) (*database.Service, error) {
+			getFilteredFn: func(ctx context.Context, name, path, method string) (*database.Service, error) {
 				if name != svc.Name || path != "/mock" || method != http.MethodGet {
 					t.Fatalf("unexpected args: %s %s %s", name, path, method)
 				}
@@ -168,7 +168,7 @@ func TestProxyGetRequest_ContextCancelled(t *testing.T) {
 
 	h := ProxyHandlers{
 		DBRepository: &stubProxyRepository{
-			getFilteredFn: func(name, path, method string) (*database.Service, error) {
+			getFilteredFn: func(ctx context.Context, name, path, method string) (*database.Service, error) {
 				if name != svc.Name || path != "/mock" || method != http.MethodGet {
 					t.Fatalf("unexpected args: %s %s %s", name, path, method)
 				}
@@ -204,7 +204,7 @@ func TestProxyGetRequest_ClientError(t *testing.T) {
 	stub := &stubHttpClient{err: fmt.Errorf("connection refused")}
 	h := ProxyHandlers{
 		DBRepository: &stubProxyRepository{
-			getFilteredFn: func(name, path, method string) (*database.Service, error) {
+			getFilteredFn: func(ctx context.Context, name, path, method string) (*database.Service, error) {
 				if name != svc.Name || path != "/mock" || method != http.MethodGet {
 					t.Fatalf("unexpected args: %s %s %s", name, path, method)
 				}

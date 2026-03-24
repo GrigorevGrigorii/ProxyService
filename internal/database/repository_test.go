@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"database/sql/driver"
 	"errors"
 	"regexp"
@@ -41,7 +42,7 @@ func TestDBRepositoryGetAll(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"service_name", "path", "method"}).AddRow("mock", "/mock", "GET"))
 	mock.ExpectCommit()
 
-	services, err := repo.GetAll()
+	services, err := repo.GetAll(context.Background())
 	if err != nil {
 		t.Fatalf("GetAll returned error: %v", err)
 	}
@@ -68,7 +69,7 @@ func TestDBRepositoryGetNotFound(t *testing.T) {
 		WillReturnError(gorm.ErrRecordNotFound)
 	mock.ExpectRollback()
 
-	service, err := repo.Get("missing")
+	service, err := repo.Get(context.Background(), "missing")
 	if service != nil {
 		t.Fatalf("expected nil service, got %+v", service)
 	}
@@ -94,7 +95,7 @@ func TestDBRepositoryGetFiltered(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"service_name", "path", "method"}).AddRow("mock", "/mock", "GET"))
 	mock.ExpectCommit()
 
-	service, err := repo.GetFiltered("mock", "/mock", "GET")
+	service, err := repo.GetFiltered(context.Background(), "mock", "/mock", "GET")
 	if err != nil {
 		t.Fatalf("GetFiltered returned error: %v", err)
 	}
@@ -118,7 +119,7 @@ func TestDBRepositoryCreateDuplicate(t *testing.T) {
 		WillReturnError(gorm.ErrDuplicatedKey)
 	mock.ExpectRollback()
 
-	err := repo.Create(&Service{
+	err := repo.Create(context.Background(), &Service{
 		Name:          "mock",
 		Scheme:        "http",
 		Host:          "localhost:8081",
@@ -145,7 +146,7 @@ func TestDBRepositoryUpdateVersionMismatch(t *testing.T) {
 		}).AddRow("mock", "http", "localhost:8081", 10.0, 2, 0.5, 3))
 	mock.ExpectRollback()
 
-	err := repo.Update(&Service{
+	err := repo.Update(context.Background(), &Service{
 		Name:          "mock",
 		Scheme:        "http",
 		Host:          "localhost:8081",
@@ -172,7 +173,7 @@ func TestDBRepositoryDelete(t *testing.T) {
 		WillReturnResult(driver.RowsAffected(1))
 	mock.ExpectCommit()
 
-	if err := repo.Delete("mock"); err != nil {
+	if err := repo.Delete(context.Background(), "mock"); err != nil {
 		t.Fatalf("Delete returned error: %v", err)
 	}
 	if err := mock.ExpectationsWereMet(); err != nil {

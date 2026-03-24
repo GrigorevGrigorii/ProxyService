@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -14,50 +15,50 @@ import (
 )
 
 type stubAdminRepository struct {
-	getAllFn func() ([]database.Service, error)
-	getFn    func(name string) (*database.Service, error)
-	createFn func(service *database.Service) error
-	updateFn func(service *database.Service) error
-	deleteFn func(name string) error
+	getAllFn func(ctx context.Context) ([]database.Service, error)
+	getFn    func(ctx context.Context, name string) (*database.Service, error)
+	createFn func(ctx context.Context, service *database.Service) error
+	updateFn func(ctx context.Context, service *database.Service) error
+	deleteFn func(ctx context.Context, name string) error
 }
 
-func (s *stubAdminRepository) GetAll() ([]database.Service, error) {
+func (s *stubAdminRepository) GetAll(ctx context.Context) ([]database.Service, error) {
 	if s.getAllFn == nil {
 		return nil, errors.New("unexpected GetAll call")
 	}
-	return s.getAllFn()
+	return s.getAllFn(ctx)
 }
 
-func (s *stubAdminRepository) Get(name string) (*database.Service, error) {
+func (s *stubAdminRepository) Get(ctx context.Context, name string) (*database.Service, error) {
 	if s.getFn == nil {
 		return nil, errors.New("unexpected Get call")
 	}
-	return s.getFn(name)
+	return s.getFn(ctx, name)
 }
 
-func (s *stubAdminRepository) GetFiltered(name, path, method string) (*database.Service, error) {
+func (s *stubAdminRepository) GetFiltered(ctx context.Context, name, path, method string) (*database.Service, error) {
 	return nil, errors.New("unexpected GetFiltered call")
 }
 
-func (s *stubAdminRepository) Create(service *database.Service) error {
+func (s *stubAdminRepository) Create(ctx context.Context, service *database.Service) error {
 	if s.createFn == nil {
 		return errors.New("unexpected Create call")
 	}
-	return s.createFn(service)
+	return s.createFn(ctx, service)
 }
 
-func (s *stubAdminRepository) Update(service *database.Service) error {
+func (s *stubAdminRepository) Update(ctx context.Context, service *database.Service) error {
 	if s.updateFn == nil {
 		return errors.New("unexpected Update call")
 	}
-	return s.updateFn(service)
+	return s.updateFn(ctx, service)
 }
 
-func (s *stubAdminRepository) Delete(name string) error {
+func (s *stubAdminRepository) Delete(ctx context.Context, name string) error {
 	if s.deleteFn == nil {
 		return errors.New("unexpected Delete call")
 	}
-	return s.deleteFn(name)
+	return s.deleteFn(ctx, name)
 }
 
 func setupAdminTest(repo database.Repository) *gin.Engine {
@@ -74,7 +75,7 @@ func setupAdminTest(repo database.Repository) *gin.Engine {
 
 func TestGetServices(t *testing.T) {
 	router := setupAdminTest(&stubAdminRepository{
-		getAllFn: func() ([]database.Service, error) {
+		getAllFn: func(ctx context.Context) ([]database.Service, error) {
 			return []database.Service{
 				{
 					Name:          "mock",
@@ -125,7 +126,7 @@ func TestGetServices(t *testing.T) {
 
 func TestGetServiceNotFound(t *testing.T) {
 	router := setupAdminTest(&stubAdminRepository{
-		getFn: func(name string) (*database.Service, error) {
+		getFn: func(ctx context.Context, name string) (*database.Service, error) {
 			if name != "missing" {
 				t.Fatalf("expected service name %q, got %q", "missing", name)
 			}
@@ -144,7 +145,7 @@ func TestGetServiceNotFound(t *testing.T) {
 
 func TestGetService(t *testing.T) {
 	router := setupAdminTest(&stubAdminRepository{
-		getFn: func(name string) (*database.Service, error) {
+		getFn: func(ctx context.Context, name string) (*database.Service, error) {
 			if name != "mock" {
 				t.Fatalf("expected service name %q, got %q", "mock", name)
 			}
@@ -194,7 +195,7 @@ func TestGetService(t *testing.T) {
 
 func TestCreateServiceDuplicate(t *testing.T) {
 	router := setupAdminTest(&stubAdminRepository{
-		createFn: func(service *database.Service) error {
+		createFn: func(ctx context.Context, service *database.Service) error {
 			if service.Name != "mock" {
 				t.Fatalf("unexpected service name: %s", service.Name)
 			}
@@ -222,7 +223,7 @@ func TestCreateServiceDuplicate(t *testing.T) {
 
 func TestUpdateServiceVersionMismatch(t *testing.T) {
 	router := setupAdminTest(&stubAdminRepository{
-		updateFn: func(service *database.Service) error {
+		updateFn: func(ctx context.Context, service *database.Service) error {
 			if service.Name != "mock" {
 				t.Fatalf("unexpected service name: %s", service.Name)
 			}
@@ -252,7 +253,7 @@ func TestUpdateServiceVersionMismatch(t *testing.T) {
 
 func TestDeleteService(t *testing.T) {
 	router := setupAdminTest(&stubAdminRepository{
-		deleteFn: func(name string) error {
+		deleteFn: func(ctx context.Context, name string) error {
 			if name != "mock" {
 				t.Fatalf("expected service name %q, got %q", "mock", name)
 			}
