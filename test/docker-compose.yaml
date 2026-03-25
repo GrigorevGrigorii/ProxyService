@@ -1,11 +1,33 @@
 # Compose file to run containers for local testing of the service
 name: proxy-service
+
+x-redis-deps: &redis-deps
+  redis-master:
+    condition: service_healthy
+    restart: true
+  redis-replica-1:
+    condition: service_healthy
+    restart: true
+  redis-replica-2:
+    condition: service_healthy
+    restart: true
+  redis-sentinel-1:
+    condition: service_healthy
+    restart: true
+  redis-sentinel-2:
+    condition: service_healthy
+    restart: true
+  redis-sentinel-3:
+    condition: service_healthy
+    restart: true
+
 services:
   proxy:
     container_name: proxy-api-server
     build:
       context: ..
       dockerfile: build/package/Dockerfile
+      target: api-server
       args:
         SERVICE: proxy-api-server
         PORT: 8080
@@ -14,10 +36,8 @@ services:
     ports:
       - 127.0.0.1:8080:8080
     depends_on:
+      <<: *redis-deps
       postgres:
-        condition: service_healthy
-        restart: true
-      redis:
         condition: service_healthy
         restart: true
   admin:
@@ -25,6 +45,7 @@ services:
     build:
       context: ..
       dockerfile: build/package/Dockerfile
+      target: api-server
       args:
         SERVICE: admin-api-server
         PORT: 8082
@@ -36,11 +57,41 @@ services:
       postgres:
         condition: service_healthy
         restart: true
+  worker:
+    container_name: background-worker
+    build:
+      context: ..
+      dockerfile: build/package/Dockerfile
+      target: background
+      args:
+        SERVICE: background-worker
+    volumes:
+      - ../configs:/app/configs:ro
+    depends_on:
+      <<: *redis-deps
+  scheduler:
+    container_name: background-scheduler
+    build:
+      context: ..
+      dockerfile: build/package/Dockerfile
+      target: background
+      args:
+        SERVICE: background-scheduler
+    volumes:
+      - ../configs:/app/configs:ro
+    depends_on:
+      <<: *redis-deps
+      postgres:
+        condition: service_healthy
+        restart: true
+      worker:
+        condition: service_started
   mock:
     container_name: mock-api-server
     build:
       context: ..
       dockerfile: build/package/Dockerfile
+      target: api-server
       args:
         SERVICE: mock-api-server
         PORT: 8081
@@ -66,21 +117,120 @@ services:
       timeout: 10s
       retries: 5
     restart: unless-stopped
-  redis:
+  redis-master:
     image: redis:latest
-    container_name: redis-container
-    command: redis-server --requirepass proxy_service_password --appendonly yes
-    environment:
-       REDIS_PASSWORD: proxy_service_password
+    container_name: redis-master
+    command: redis-server --requirepass proxy_service_password --masterauth proxy_service_password --appendonly yes
     ports:
       - "6379:6379"
     volumes:
-      - ./redisdata:/data
+      - ./redis-master-data:/data
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli -a proxy_service_password ping"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD-SHELL", "redis-cli -a proxy_service_password ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
       retries: 5
+      start_period: 10s
+    restart: unless-stopped
+  redis-replica-1:
+    image: redis:latest
+    container_name: redis-replica-1
+    command: redis-server --replicaof redis-master 6379 --requirepass proxy_service_password --masterauth proxy_service_password --appendonly yes
+    ports:
+      - "6380:6379"
+    volumes:
+      - ./redis-replica1-data:/data
+    depends_on:
+      - redis-master
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a proxy_service_password ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+  redis-replica-2:
+    image: redis:latest
+    container_name: redis-replica-2
+    command: redis-server --replicaof redis-master 6379 --requirepass proxy_service_password --masterauth proxy_service_password --appendonly yes
+    ports:
+      - "6381:6379"
+    volumes:
+      - ./redis-replica2-data:/data
+    depends_on:
+      - redis-master
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a proxy_service_password ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+  redis-sentinel-1:
+    image: redis:latest
+    container_name: redis-sentinel-1
+    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
+    ports:
+      - "26379:26379"
+    depends_on:
+      redis-master:
+        condition: service_healthy
+      redis-replica-1:
+        condition: service_healthy
+      redis-replica-2:
+        condition: service_healthy
+    volumes:
+      - "./sentinel.conf:/usr/local/etc/redis/sentinel.conf"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -p 26379 ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+  redis-sentinel-2:
+    image: redis:latest
+    container_name: redis-sentinel-2
+    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
+    ports:
+      - "26380:26379"
+    depends_on:
+      redis-master:
+        condition: service_healthy
+      redis-replica-1:
+        condition: service_healthy
+      redis-replica-2:
+        condition: service_healthy
+    volumes:
+      - "./sentinel.conf:/usr/local/etc/redis/sentinel.conf"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -p 26379 ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+  redis-sentinel-3:
+    image: redis:latest
+    container_name: redis-sentinel-3
+    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
+    ports:
+      - "26381:26379"
+    depends_on:
+      redis-master:
+        condition: service_healthy
+      redis-replica-1:
+        condition: service_healthy
+      redis-replica-2:
+        condition: service_healthy
+    volumes:
+      - "./sentinel.conf:/usr/local/etc/redis/sentinel.conf"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -p 26379 ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     restart: unless-stopped
 
 volumes:

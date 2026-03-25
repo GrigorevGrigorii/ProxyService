@@ -1,6 +1,6 @@
 FROM golang:1.25 AS builder
 
-ARG SERVICE # proxy-api-server | mock-api-server | admin-api-server
+ARG SERVICE # proxy-api-server | mock-api-server | admin-api-server | background-worker | background-scheduler
 
 ENV CGO_ENABLED=0
 ENV GOOS=linux
@@ -14,7 +14,7 @@ COPY . .
 
 RUN go build -o ./bin/main cmd/${SERVICE}/main.go
 
-FROM alpine:3.23 AS service
+FROM alpine:3.23 AS api-server
 
 ARG PORT
 
@@ -28,5 +28,14 @@ COPY --from=builder /app/bin/main ./main
 COPY --from=builder /app/configs ./configs
 
 EXPOSE ${PORT}
+
+CMD ["./main"]
+
+FROM alpine:3.23 AS background
+
+WORKDIR /app
+
+COPY --from=builder /app/bin/main ./main
+COPY --from=builder /app/configs ./configs
 
 CMD ["./main"]

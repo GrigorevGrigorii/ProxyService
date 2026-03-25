@@ -39,7 +39,7 @@ func main() {
 	}
 
 	// Configs
-	cfg, err := config.LoadMockServer()
+	cfg, err := config.LoadConfig[config.MockServerConfig]()
 	if err != nil {
 		log.Fatal().Msg(err.Error())
 	}

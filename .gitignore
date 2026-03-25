@@ -32,6 +32,9 @@ go.work.sum
 .vscode/
 
 # Custom
-test/pgdata
+test/pgdata/
+test/redis-master-data/
+test/redis-replica1-data/
+test/redis-replica2-data/
 .gocache/
 .gopath/

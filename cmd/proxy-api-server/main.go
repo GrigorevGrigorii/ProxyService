@@ -23,7 +23,7 @@ func main() {
 	}
 
 	// Configs
-	cfg, err := config.LoadProxyServer()
+	cfg, err := config.LoadConfig[config.ProxyServerConfig]()
 	if err != nil {
 		log.Fatal().Msg(err.Error())
 	}

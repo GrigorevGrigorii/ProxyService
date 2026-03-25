@@ -22,7 +22,7 @@ func main() {
 	}
 
 	// Configs
-	cfg, err := config.LoadAdminServer()
+	cfg, err := config.LoadConfig[config.AdminServerConfig]()
 	if err != nil {
 		log.Fatal().Msg(err.Error())
 	}
