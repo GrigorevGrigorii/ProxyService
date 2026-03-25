@@ -19,3 +19,28 @@ admin_server:
     port: 5432
     database: proxy_service_db
     sslmode: disable
+background_worker:
+  redis:
+    master_name: redis-proxy
+    hosts:
+      - redis-sentinel-1:26379
+      - redis-sentinel-2:26380
+      - redis-sentinel-3:26381
+    password: proxy_service_password
+    database: 0
+background_scheduler:
+  redis:
+    master_name: redis-proxy
+    hosts:
+      - redis-sentinel-1:26379
+      - redis-sentinel-2:26380
+      - redis-sentinel-3:26381
+    password: proxy_service_password
+    database: 0
+  pg:
+    user: proxy_service_user
+    password: proxy_service_password
+    host: postgres
+    port: 5432
+    database: proxy_service_db
+    sslmode: disable

@@ -239,7 +239,7 @@ func TestUpdateServiceVersionMismatch(t *testing.T) {
 		"retry_count":3,
 		"retry_interval":0.5,
 		"version":2,
-		"targets":[{"path":"/new","method":"GET","query":"query=param","cache_interval":60}]
+		"targets":[{"path":"/new","method":"GET","query":"query=param","cache_interval":"1m"}]
 	}`)
 	req := httptest.NewRequest(http.MethodPut, "/service/mock", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")

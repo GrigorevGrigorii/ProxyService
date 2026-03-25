@@ -21,7 +21,7 @@ type RedisConfig struct {
 	MasterName string   `mapstructure:"master_name"`
 	Hosts      []string `mapstructure:"hosts"`
 	Password   string   `mapstructure:"password"`
-	Database   uint8    `mapstructure:"database"`
+	Database   int      `mapstructure:"database"`
 }
 
 type ProxyServerConfig struct {
@@ -41,7 +41,6 @@ type AdminServerConfig struct {
 
 type BackgroundWorkerConfig struct {
 	RedisConfig RedisConfig `mapstructure:"redis"`
-	PGConfig    PGConfig    `mapstructure:"pg"`
 }
 
 type BackgroundSchedulerConfig struct {

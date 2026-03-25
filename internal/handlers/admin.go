@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"proxy-service/internal/database"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -50,7 +51,7 @@ func (h *AdminHandlers) CreateService(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
-	if err := checkTargetsQueries(request.Targets); err != nil {
+	if err := checkService(&request); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("Cannot parse query: %s", err.Error())})
 		return
 	}
@@ -76,7 +77,7 @@ func (h *AdminHandlers) UpdateService(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
-	if err := checkTargetsQueries(request.Targets); err != nil {
+	if err := checkService(&request); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("Cannot parse query: %s", err.Error())})
 		return
 	}
@@ -113,14 +114,22 @@ func (h *AdminHandlers) DeleteService(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, gin.H{"message": "ok"})
 }
 
-func checkTargetsQueries(targets []TargetDTO) error {
-	for i := range targets {
-		if len(targets[i].Query) > 0 {
-			query, err := url.ParseQuery(targets[i].Query)
+func checkService(service *ServiceDTO) error {
+	for i := range service.Targets {
+		// Check service.Targets[i].Query
+		if len(service.Targets[i].Query) > 0 {
+			query, err := url.ParseQuery(service.Targets[i].Query)
 			if err != nil {
 				return err
 			}
-			targets[i].Query = query.Encode()
+			service.Targets[i].Query = query.Encode()
+		}
+
+		// Check service.Targets[i].CacheInterval
+		if service.Targets[i].CacheInterval != nil {
+			if _, err := time.ParseDuration(*service.Targets[i].CacheInterval); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

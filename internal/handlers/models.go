@@ -5,10 +5,10 @@ import (
 )
 
 type TargetDTO struct {
-	Path          string `json:"path"`
-	Method        string `json:"method"`
-	Query         string `json:"query"`
-	CacheInterval *int   `json:"cache_interval"`
+	Path          string  `json:"path"`
+	Method        string  `json:"method"`
+	Query         string  `json:"query"`
+	CacheInterval *string `json:"cache_interval"`
 }
 
 type ServiceDTO struct {

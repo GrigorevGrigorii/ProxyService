@@ -35,6 +35,8 @@ FROM alpine:3.23 AS background
 
 WORKDIR /app
 
+RUN apk add --no-cache ca-certificates
+
 COPY --from=builder /app/bin/main ./main
 COPY --from=builder /app/configs ./configs
 

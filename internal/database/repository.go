@@ -78,6 +78,28 @@ func (r *DBRepository) GetFiltered(ctx context.Context, name, path, method, quer
 	return result, err
 }
 
+func (r *DBRepository) GetForCaching(ctx context.Context) ([]Service, error) {
+	var result []Service
+
+	err := r.DB.Transaction(func(tx *gorm.DB) error {
+		services, err := gorm.G[Service](tx).Preload("Targets", func(db gorm.PreloadBuilder) error {
+			db.Where("cache_interval IS NOT NULL")
+			return nil
+		}).Find(ctx)
+		if err != nil {
+			return err
+		}
+		for _, service := range services {
+			if len(service.Targets) != 0 {
+				result = append(result, service)
+			}
+		}
+		return nil
+	})
+
+	return result, err
+}
+
 func (r *DBRepository) Create(ctx context.Context, service *Service) error {
 	return r.DB.Transaction(func(tx *gorm.DB) error {
 		return gorm.G[Service](tx).Create(ctx, service)

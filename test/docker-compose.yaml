@@ -65,6 +65,8 @@ services:
       target: background
       args:
         SERVICE: background-worker
+    environment:
+      MODE: debug
     volumes:
       - ../configs:/app/configs:ro
     depends_on:
@@ -77,6 +79,8 @@ services:
       target: background
       args:
         SERVICE: background-scheduler
+    environment:
+      MODE: debug
     volumes:
       - ../configs:/app/configs:ro
     depends_on:
