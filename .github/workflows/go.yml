@@ -27,5 +27,14 @@ jobs:
     - name: Build mock-api-server
       run: go build -v cmd/mock-api-server/main.go
 
+    - name: Build admin-api-server
+      run: go build -v cmd/admin-api-server/main.go
+
+    - name: Build background-worker
+      run: go build -v cmd/background-worker/main.go
+
+    - name: Build background-scheduler
+      run: go build -v cmd/background-scheduler/main.go
+
     - name: Test
       run: go test -v ./...
