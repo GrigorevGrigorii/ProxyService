@@ -47,6 +47,9 @@ func main() {
 			RedisConnOpt:               redis,
 			PeriodicTaskConfigProvider: provider,
 			SyncInterval:               30 * time.Second,
+			SchedulerOpts: &asynq.SchedulerOpts{
+				Location: time.UTC,
+			},
 		},
 	)
 	if err != nil {
