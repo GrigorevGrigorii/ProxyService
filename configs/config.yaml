@@ -20,6 +20,7 @@ admin_server:
     database: proxy_service_db
     sslmode: disable
 background_worker:
+  concurrency: 4
   redis:
     master_name: redis-proxy
     hosts:

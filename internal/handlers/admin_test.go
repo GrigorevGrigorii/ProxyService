@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"proxy-service/internal/database"
+	"proxy-service/internal/models"
 	"reflect"
 	"testing"
 
@@ -101,11 +102,11 @@ func TestGetServices(t *testing.T) {
 		t.Fatalf("expected status %d, got %d", http.StatusOK, w.Code)
 	}
 	// Check resonse body
-	var got []ServiceDTO
+	var got []models.ServiceDTO
 	if err := json.Unmarshal(w.Body.Bytes(), &got); err != nil {
 		t.Fatalf("failed to unmarshal response body: %v", err)
 	}
-	expected := []ServiceDTO{
+	expected := []models.ServiceDTO{
 		{
 			Name:          "mock",
 			Scheme:        "http",
@@ -114,7 +115,7 @@ func TestGetServices(t *testing.T) {
 			RetryCount:    3,
 			RetryInterval: 0.1,
 			Version:       1,
-			Targets: []TargetDTO{
+			Targets: []models.TargetDTO{
 				{Path: "/mock", Method: "GET", Query: "query=param"},
 			},
 		},
@@ -172,11 +173,11 @@ func TestGetService(t *testing.T) {
 		t.Fatalf("expected status %d, got %d", http.StatusOK, w.Code)
 	}
 	// Check resonse body
-	var got ServiceDTO
+	var got models.ServiceDTO
 	if err := json.Unmarshal(w.Body.Bytes(), &got); err != nil {
 		t.Fatalf("failed to unmarshal response body: %v", err)
 	}
-	expected := ServiceDTO{
+	expected := models.ServiceDTO{
 		Name:          "mock",
 		Scheme:        "http",
 		Host:          "localhost:8080",
@@ -184,7 +185,7 @@ func TestGetService(t *testing.T) {
 		RetryCount:    0,
 		RetryInterval: 0,
 		Version:       1,
-		Targets: []TargetDTO{
+		Targets: []models.TargetDTO{
 			{Path: "/mock", Method: "GET", Query: "query=param"},
 		},
 	}

@@ -41,6 +41,7 @@ type AdminServerConfig struct {
 
 type BackgroundWorkerConfig struct {
 	RedisConfig RedisConfig `mapstructure:"redis"`
+	Concurrency int         `mapstructure:"concurrency"`
 }
 
 type BackgroundSchedulerConfig struct {

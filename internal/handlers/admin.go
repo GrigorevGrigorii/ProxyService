@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"proxy-service/internal/database"
+	"proxy-service/internal/models"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -22,9 +23,9 @@ func (h *AdminHandlers) GetServices(c *gin.Context) {
 		return
 	}
 
-	response := make([]ServiceDTO, len(services))
+	response := make([]models.ServiceDTO, len(services))
 	for i, service := range services {
-		response[i] = serviceDTOFromDBModel(service)
+		response[i] = models.ServiceDTOFromDBModel(service)
 	}
 
 	c.IndentedJSON(http.StatusOK, response)
@@ -41,11 +42,11 @@ func (h *AdminHandlers) GetService(c *gin.Context) {
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, serviceDTOFromDBModel(*service))
+	c.IndentedJSON(http.StatusOK, models.ServiceDTOFromDBModel(*service))
 }
 
 func (h *AdminHandlers) CreateService(c *gin.Context) {
-	var request ServiceDTO
+	var request models.ServiceDTO
 
 	if err := c.BindJSON(&request); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
@@ -56,7 +57,7 @@ func (h *AdminHandlers) CreateService(c *gin.Context) {
 		return
 	}
 
-	service := serviceDBModelFromDTO(request)
+	service := models.ServiceDBModelFromDTO(request)
 	err := h.DBRepository.Create(c.Request.Context(), &service)
 	if errors.Is(err, database.ErrAlreadyExists) {
 		c.IndentedJSON(http.StatusConflict, gin.H{"message": fmt.Sprintf("Service '%s' already exists", service.Name)})
@@ -71,7 +72,7 @@ func (h *AdminHandlers) CreateService(c *gin.Context) {
 }
 
 func (h *AdminHandlers) UpdateService(c *gin.Context) {
-	var request ServiceDTO
+	var request models.ServiceDTO
 
 	if err := c.BindJSON(&request); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
@@ -87,7 +88,7 @@ func (h *AdminHandlers) UpdateService(c *gin.Context) {
 		return
 	}
 
-	service := serviceDBModelFromDTO(request)
+	service := models.ServiceDBModelFromDTO(request)
 	err := h.DBRepository.Update(c.Request.Context(), &service)
 	if errors.Is(err, database.ErrNotFound) {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": fmt.Sprintf("Service '%s' not found", c.Param("name"))})
@@ -114,7 +115,7 @@ func (h *AdminHandlers) DeleteService(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, gin.H{"message": "ok"})
 }
 
-func checkService(service *ServiceDTO) error {
+func checkService(service *models.ServiceDTO) error {
 	for i := range service.Targets {
 		// Check service.Targets[i].Query
 		if len(service.Targets[i].Query) > 0 {

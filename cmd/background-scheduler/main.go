@@ -33,7 +33,7 @@ func main() {
 	dbRepository := database.DBRepository{DB: db}
 
 	// Asynq Redis
-	var redis = &asynq.RedisFailoverClientOpt{
+	var redisOpt = &asynq.RedisFailoverClientOpt{
 		MasterName:    cfg.RedisConfig.MasterName,
 		SentinelAddrs: cfg.RedisConfig.Hosts,
 		Password:      cfg.RedisConfig.Password,
@@ -44,7 +44,7 @@ func main() {
 	provider := &background.DynamicProvider{DBRepository: dbRepository}
 	mgr, err := asynq.NewPeriodicTaskManager(
 		asynq.PeriodicTaskManagerOpts{
-			RedisConnOpt:               redis,
+			RedisConnOpt:               redisOpt,
 			PeriodicTaskConfigProvider: provider,
 			SyncInterval:               30 * time.Second,
 			SchedulerOpts: &asynq.SchedulerOpts{

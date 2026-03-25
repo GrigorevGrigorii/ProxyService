@@ -3,9 +3,8 @@ package background
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"proxy-service/internal/database"
-	"time"
+	"proxy-service/internal/models"
 
 	"github.com/hibiken/asynq"
 	"github.com/rs/zerolog/log"
@@ -25,21 +24,16 @@ func (p *DynamicProvider) GetConfigs() ([]*asynq.PeriodicTaskConfig, error) {
 
 	for _, service := range servicesToCache {
 		for _, target := range service.Targets {
-			duration, err := time.ParseDuration(*target.CacheInterval)
+			payload, err := getPayload(models.ServiceDTOFromDBModel(service), models.TargetDTOFromDBModel(target))
 			if err != nil {
 				return nil, err
 			}
 
-			payload, err := json.Marshal(service)
-			if err != nil {
-				return nil, err
-			}
-
-			task := asynq.NewTask(fmt.Sprintf("%s:%s:%s", service.Name, target.Path, target.Query), payload, asynq.Unique(duration))
+			task := asynq.NewTask("cache_task", payload)
 			tasks = append(
 				tasks,
 				&asynq.PeriodicTaskConfig{
-					Cronspec: fmt.Sprintf("@every %s", *target.CacheInterval),
+					Cronspec: "@every " + *target.CacheInterval,
 					Task:     task,
 				},
 			)
@@ -49,4 +43,10 @@ func (p *DynamicProvider) GetConfigs() ([]*asynq.PeriodicTaskConfig, error) {
 
 	log.Info().Msgf("Return %d tasks for execution", len(tasks))
 	return tasks, nil
+}
+
+// Return dumped service with the only target that required for this caching task
+func getPayload(service models.ServiceDTO, target models.TargetDTO) ([]byte, error) {
+	service.Targets = []models.TargetDTO{target}
+	return json.Marshal(service)
 }

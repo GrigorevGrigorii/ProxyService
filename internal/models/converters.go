@@ -1,28 +1,10 @@
-package handlers
+package models
 
 import (
 	"proxy-service/internal/database"
 )
 
-type TargetDTO struct {
-	Path          string  `json:"path"`
-	Method        string  `json:"method"`
-	Query         string  `json:"query"`
-	CacheInterval *string `json:"cache_interval"`
-}
-
-type ServiceDTO struct {
-	Name          string      `json:"name"`
-	Scheme        string      `json:"scheme"`
-	Host          string      `json:"host"`
-	Timeout       float32     `json:"timeout"`
-	RetryCount    int         `json:"retry_count"`
-	RetryInterval float32     `json:"retry_interval"`
-	Version       int         `json:"version"`
-	Targets       []TargetDTO `json:"targets"`
-}
-
-func targetDTOFromDBModel(obj database.Target) TargetDTO {
+func TargetDTOFromDBModel(obj database.Target) TargetDTO {
 	return TargetDTO{
 		Path:          obj.Path,
 		Method:        obj.Method,
@@ -31,10 +13,10 @@ func targetDTOFromDBModel(obj database.Target) TargetDTO {
 	}
 }
 
-func serviceDTOFromDBModel(obj database.Service) ServiceDTO {
+func ServiceDTOFromDBModel(obj database.Service) ServiceDTO {
 	targets := make([]TargetDTO, len(obj.Targets))
 	for i, target := range obj.Targets {
-		targets[i] = targetDTOFromDBModel(target)
+		targets[i] = TargetDTOFromDBModel(target)
 	}
 
 	return ServiceDTO{
@@ -49,7 +31,7 @@ func serviceDTOFromDBModel(obj database.Service) ServiceDTO {
 	}
 }
 
-func targetDBModelFromDTO(serviceName string, dto TargetDTO) database.Target {
+func TargetDBModelFromDTO(serviceName string, dto TargetDTO) database.Target {
 	return database.Target{
 		ServiceName:   serviceName,
 		Path:          dto.Path,
@@ -59,10 +41,10 @@ func targetDBModelFromDTO(serviceName string, dto TargetDTO) database.Target {
 	}
 }
 
-func serviceDBModelFromDTO(dto ServiceDTO) database.Service {
+func ServiceDBModelFromDTO(dto ServiceDTO) database.Service {
 	targets := make([]database.Target, len(dto.Targets))
 	for i, target := range dto.Targets {
-		targets[i] = targetDBModelFromDTO(dto.Name, target)
+		targets[i] = TargetDBModelFromDTO(dto.Name, target)
 	}
 
 	return database.Service{
