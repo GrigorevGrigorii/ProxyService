@@ -60,7 +60,7 @@ func testServiceForProxy() database.Service {
 		Name:          "mock",
 		Scheme:        "http",
 		Host:          "upstream.example",
-		Targets:       []database.Target{{Path: "/mock", Method: "GET"}},
+		Targets:       []database.Target{{Path: "/mock", Method: "GET", Query: "query=param"}},
 		Timeout:       1,
 		RetryCount:    1,
 		RetryInterval: 0,
@@ -68,7 +68,7 @@ func testServiceForProxy() database.Service {
 }
 
 type stubProxyRepository struct {
-	getFilteredFn func(ctx context.Context, name, path, method string) (*database.Service, error)
+	getFilteredFn func(ctx context.Context, name, path, method, query string) (*database.Service, error)
 }
 
 func (s *stubProxyRepository) GetAll(ctx context.Context) ([]database.Service, error) {
@@ -79,11 +79,11 @@ func (s *stubProxyRepository) Get(ctx context.Context, name string) (*database.S
 	return nil, errors.New("unexpected Get call")
 }
 
-func (s *stubProxyRepository) GetFiltered(ctx context.Context, name, path, method string) (*database.Service, error) {
+func (s *stubProxyRepository) GetFiltered(ctx context.Context, name, path, method, query string) (*database.Service, error) {
 	if s.getFilteredFn == nil {
 		return nil, errors.New("unexpected GetFiltered call")
 	}
-	return s.getFilteredFn(ctx, name, path, method)
+	return s.getFilteredFn(ctx, name, path, method, query)
 }
 
 func (s *stubProxyRepository) Create(ctx context.Context, service *database.Service) error {
@@ -101,9 +101,9 @@ func (s *stubProxyRepository) Delete(ctx context.Context, name string) error {
 func TestProxyGetRequest_NotAllowedService(t *testing.T) {
 	h := ProxyHandlers{
 		DBRepository: &stubProxyRepository{
-			getFilteredFn: func(ctx context.Context, name, path, method string) (*database.Service, error) {
-				if name != "not-allowed" || path != "/path" || method != http.MethodGet {
-					t.Fatalf("unexpected args: %s %s %s", name, path, method)
+			getFilteredFn: func(ctx context.Context, name, path, method, query string) (*database.Service, error) {
+				if name != "not-allowed" || path != "/path" || method != http.MethodGet || query != "query=param" {
+					t.Fatalf("unexpected args: %s %s %s %s", name, path, method, query)
 				}
 				return nil, database.ErrNotFound
 			},
@@ -112,7 +112,7 @@ func TestProxyGetRequest_NotAllowedService(t *testing.T) {
 	}
 	r := testProxyGETRouter(h)
 
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/not-allowed/path", nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/not-allowed/path?query=param", nil)
 	rec := httptest.NewRecorder()
 	r.ServeHTTP(rec, req)
 
@@ -127,9 +127,9 @@ func TestProxyGetRequest_ProxyResponseData(t *testing.T) {
 	stub := &stubHttpClient{resp: httpResp(http.StatusNotFound, "upstream-body")}
 	h := ProxyHandlers{
 		DBRepository: &stubProxyRepository{
-			getFilteredFn: func(ctx context.Context, name, path, method string) (*database.Service, error) {
-				if name != svc.Name || path != "/mock" || method != http.MethodGet {
-					t.Fatalf("unexpected args: %s %s %s", name, path, method)
+			getFilteredFn: func(ctx context.Context, name, path, method, query string) (*database.Service, error) {
+				if name != svc.Name || path != "/mock" || method != http.MethodGet || query != "query=param" {
+					t.Fatalf("unexpected args: %s %s %s %s", name, path, method, query)
 				}
 				return &svc, nil
 			},
@@ -138,11 +138,11 @@ func TestProxyGetRequest_ProxyResponseData(t *testing.T) {
 	}
 	r := testProxyGETRouter(h)
 
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/mock/mock?x=1", nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/mock/mock?query=param", nil)
 	rec := httptest.NewRecorder()
 	r.ServeHTTP(rec, req)
 
-	wantURL := "http://upstream.example/mock?x=1"
+	wantURL := "http://upstream.example/mock?query=param"
 	if stub.passedURL != wantURL {
 		t.Fatalf("got URL = %q, want %q", stub.passedURL, wantURL)
 	}
@@ -168,9 +168,9 @@ func TestProxyGetRequest_ContextCancelled(t *testing.T) {
 
 	h := ProxyHandlers{
 		DBRepository: &stubProxyRepository{
-			getFilteredFn: func(ctx context.Context, name, path, method string) (*database.Service, error) {
-				if name != svc.Name || path != "/mock" || method != http.MethodGet {
-					t.Fatalf("unexpected args: %s %s %s", name, path, method)
+			getFilteredFn: func(ctx context.Context, name, path, method, query string) (*database.Service, error) {
+				if name != svc.Name || path != "/mock" || method != http.MethodGet || query != "query=param" {
+					t.Fatalf("unexpected args: %s %s %s %s", name, path, method, query)
 				}
 				return &svc, nil
 			},
@@ -181,7 +181,7 @@ func TestProxyGetRequest_ContextCancelled(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/mock/mock", nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/mock/mock?query=param", nil)
 	req = req.WithContext(ctx)
 	rec := httptest.NewRecorder()
 	r.ServeHTTP(rec, req)
@@ -204,9 +204,9 @@ func TestProxyGetRequest_ClientError(t *testing.T) {
 	stub := &stubHttpClient{err: fmt.Errorf("connection refused")}
 	h := ProxyHandlers{
 		DBRepository: &stubProxyRepository{
-			getFilteredFn: func(ctx context.Context, name, path, method string) (*database.Service, error) {
-				if name != svc.Name || path != "/mock" || method != http.MethodGet {
-					t.Fatalf("unexpected args: %s %s %s", name, path, method)
+			getFilteredFn: func(ctx context.Context, name, path, method, query string) (*database.Service, error) {
+				if name != svc.Name || path != "/mock" || method != http.MethodGet || query != "query=param" {
+					t.Fatalf("unexpected args: %s %s %s %s", name, path, method, query)
 				}
 				return &svc, nil
 			},
@@ -215,7 +215,7 @@ func TestProxyGetRequest_ClientError(t *testing.T) {
 	}
 	r := testProxyGETRouter(h)
 
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/mock/mock", nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/mock/mock?query=param", nil)
 	rec := httptest.NewRecorder()
 	r.ServeHTTP(rec, req)
 

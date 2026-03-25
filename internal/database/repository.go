@@ -16,7 +16,7 @@ var (
 type Repository interface {
 	GetAll(ctx context.Context) ([]Service, error)
 	Get(ctx context.Context, name string) (*Service, error)
-	GetFiltered(ctx context.Context, name, path, method string) (*Service, error)
+	GetFiltered(ctx context.Context, name, path, method, query string) (*Service, error)
 	Create(ctx context.Context, service *Service) error
 	Update(ctx context.Context, service *Service) error
 	Delete(ctx context.Context, name string) error
@@ -56,17 +56,21 @@ func (r *DBRepository) Get(ctx context.Context, name string) (*Service, error) {
 	return result, err
 }
 
-func (r *DBRepository) GetFiltered(ctx context.Context, name, path, method string) (*Service, error) {
+func (r *DBRepository) GetFiltered(ctx context.Context, name, path, method, query string) (*Service, error) {
 	var result *Service
 
 	err := r.DB.Transaction(func(tx *gorm.DB) error {
 		service, err := gorm.G[Service](tx).Preload("Targets", func(db gorm.PreloadBuilder) error {
-			db.Where("path = ? AND method = ?", path, method)
+			db.Where("path = ? AND method = ? AND query = ?", path, method, query)
 			return nil
 		}).Where("name = ?", name).First(ctx)
 		if err != nil {
 			return err
 		}
+		if len(service.Targets) == 0 {
+			return gorm.ErrRecordNotFound
+		}
+
 		result = &service
 		return nil
 	})

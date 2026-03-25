@@ -5,8 +5,10 @@ import (
 )
 
 type TargetDTO struct {
-	Path   string `json:"path"`
-	Method string `json:"method"`
+	Path          string `json:"path"`
+	Method        string `json:"method"`
+	Query         string `json:"query"`
+	CacheInterval *int   `json:"cache_interval"`
 }
 
 type ServiceDTO struct {
@@ -22,8 +24,10 @@ type ServiceDTO struct {
 
 func targetDTOFromDBModel(obj database.Target) TargetDTO {
 	return TargetDTO{
-		Path:   obj.Path,
-		Method: obj.Method,
+		Path:          obj.Path,
+		Method:        obj.Method,
+		Query:         obj.Query,
+		CacheInterval: obj.CacheInterval,
 	}
 }
 
@@ -47,9 +51,11 @@ func serviceDTOFromDBModel(obj database.Service) ServiceDTO {
 
 func targetDBModelFromDTO(serviceName string, dto TargetDTO) database.Target {
 	return database.Target{
-		ServiceName: serviceName,
-		Path:        dto.Path,
-		Method:      dto.Method,
+		ServiceName:   serviceName,
+		Path:          dto.Path,
+		Method:        dto.Method,
+		Query:         dto.Query,
+		CacheInterval: dto.CacheInterval,
 	}
 }
 

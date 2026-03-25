@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"proxy-service/internal/database"
 
 	"github.com/gin-gonic/gin"
@@ -49,6 +50,10 @@ func (h *AdminHandlers) CreateService(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
+	if err := checkTargetsQueries(request.Targets); err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("Cannot parse query: %s", err.Error())})
+		return
+	}
 
 	service := serviceDBModelFromDTO(request)
 	err := h.DBRepository.Create(c.Request.Context(), &service)
@@ -69,6 +74,10 @@ func (h *AdminHandlers) UpdateService(c *gin.Context) {
 
 	if err := c.BindJSON(&request); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+	if err := checkTargetsQueries(request.Targets); err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("Cannot parse query: %s", err.Error())})
 		return
 	}
 
@@ -102,4 +111,17 @@ func (h *AdminHandlers) DeleteService(c *gin.Context) {
 		return
 	}
 	c.IndentedJSON(http.StatusOK, gin.H{"message": "ok"})
+}
+
+func checkTargetsQueries(targets []TargetDTO) error {
+	for i := range targets {
+		if len(targets[i].Query) > 0 {
+			query, err := url.ParseQuery(targets[i].Query)
+			if err != nil {
+				return err
+			}
+			targets[i].Query = query.Encode()
+		}
+	}
+	return nil
 }

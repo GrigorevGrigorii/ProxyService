@@ -36,7 +36,7 @@ func (s *stubAdminRepository) Get(ctx context.Context, name string) (*database.S
 	return s.getFn(ctx, name)
 }
 
-func (s *stubAdminRepository) GetFiltered(ctx context.Context, name, path, method string) (*database.Service, error) {
+func (s *stubAdminRepository) GetFiltered(ctx context.Context, name, path, method, query string) (*database.Service, error) {
 	return nil, errors.New("unexpected GetFiltered call")
 }
 
@@ -86,7 +86,7 @@ func TestGetServices(t *testing.T) {
 					RetryInterval: 0.1,
 					Version:       1,
 					Targets: []database.Target{
-						{ServiceName: "mock", Path: "/mock", Method: "GET"},
+						{ServiceName: "mock", Path: "/mock", Method: "GET", Query: "query=param"},
 					},
 				},
 			}, nil
@@ -115,7 +115,7 @@ func TestGetServices(t *testing.T) {
 			RetryInterval: 0.1,
 			Version:       1,
 			Targets: []TargetDTO{
-				{Path: "/mock", Method: "GET"},
+				{Path: "/mock", Method: "GET", Query: "query=param"},
 			},
 		},
 	}
@@ -158,7 +158,7 @@ func TestGetService(t *testing.T) {
 				RetryInterval: 0,
 				Version:       1,
 				Targets: []database.Target{
-					{ServiceName: "mock", Path: "/mock", Method: "GET"},
+					{ServiceName: "mock", Path: "/mock", Method: "GET", Query: "query=param"},
 				},
 			}, nil
 		},
@@ -185,7 +185,7 @@ func TestGetService(t *testing.T) {
 		RetryInterval: 0,
 		Version:       1,
 		Targets: []TargetDTO{
-			{Path: "/mock", Method: "GET"},
+			{Path: "/mock", Method: "GET", Query: "query=param"},
 		},
 	}
 	if !reflect.DeepEqual(got, expected) {
@@ -239,7 +239,7 @@ func TestUpdateServiceVersionMismatch(t *testing.T) {
 		"retry_count":3,
 		"retry_interval":0.5,
 		"version":2,
-		"targets":[{"path":"/new","method":"GET"}]
+		"targets":[{"path":"/new","method":"GET","query":"query=param","cache_interval":60}]
 	}`)
 	req := httptest.NewRequest(http.MethodPut, "/service/mock", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")

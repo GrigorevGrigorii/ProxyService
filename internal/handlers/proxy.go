@@ -18,7 +18,7 @@ type ProxyHandlers struct {
 }
 
 func (h *ProxyHandlers) ProxyGetRequest(c *gin.Context) {
-	service, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"))
+	service, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"), c.Request.URL.Query().Encode())
 	if errors.Is(err, database.ErrNotFound) {
 		c.IndentedJSON(http.StatusForbidden, gin.H{"message": "service or path is not allowed"})
 		return
@@ -53,7 +53,7 @@ func (h *ProxyHandlers) ProxyGetRequest(c *gin.Context) {
 }
 
 func (h *ProxyHandlers) ProxyPostRequest(c *gin.Context) {
-	_, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"))
+	_, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"), "")
 	if errors.Is(err, database.ErrNotFound) {
 		c.IndentedJSON(http.StatusForbidden, gin.H{"message": "service or path is not allowed"})
 		return
@@ -66,7 +66,7 @@ func (h *ProxyHandlers) ProxyPostRequest(c *gin.Context) {
 }
 
 func (h *ProxyHandlers) ProxyPutRequest(c *gin.Context) {
-	_, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"))
+	_, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"), "")
 	if errors.Is(err, database.ErrNotFound) {
 		c.IndentedJSON(http.StatusForbidden, gin.H{"message": "service or path is not allowed"})
 		return
@@ -79,7 +79,7 @@ func (h *ProxyHandlers) ProxyPutRequest(c *gin.Context) {
 }
 
 func (h *ProxyHandlers) ProxyDeleteRequest(c *gin.Context) {
-	_, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"))
+	_, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"), "")
 	if errors.Is(err, database.ErrNotFound) {
 		c.IndentedJSON(http.StatusForbidden, gin.H{"message": "service or path is not allowed"})
 		return
@@ -91,8 +91,8 @@ func (h *ProxyHandlers) ProxyDeleteRequest(c *gin.Context) {
 	c.IndentedJSON(http.StatusNotImplemented, gin.H{"message": "not_implemented_error"})
 }
 
-func (h *ProxyHandlers) getAllowedService(ctx context.Context, service string, method string, path string) (*database.Service, error) {
-	allowedService, err := h.DBRepository.GetFiltered(ctx, service, path, method)
+func (h *ProxyHandlers) getAllowedService(ctx context.Context, service, method, path, query string) (*database.Service, error) {
+	allowedService, err := h.DBRepository.GetFiltered(ctx, service, path, method, query)
 	if err != nil {
 		return nil, err
 	}

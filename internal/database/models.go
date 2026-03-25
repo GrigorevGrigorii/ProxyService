@@ -1,9 +1,11 @@
 package database
 
 type Target struct {
-	ServiceName string `gorm:"column:service_name;size:32;primaryKey"`
-	Path        string `gorm:"column:path;size:128;primaryKey;not null"`
-	Method      string `gorm:"column:method;type:httpmethod;primaryKey;not null"`
+	ServiceName   string `gorm:"column:service_name;size:32;primaryKey"`
+	Path          string `gorm:"column:path;size:128;primaryKey;not null"`
+	Method        string `gorm:"column:method;type:httpmethod;primaryKey;not null"`
+	Query         string `gorm:"column:query;type:text;primaryKey;not null;default:''"`
+	CacheInterval *int   `gorm:"column:cache_interval"`
 
 	Service Service `gorm:"foreignKey:ServiceName;references:Name;constraint:OnDelete:CASCADE;"`
 }
