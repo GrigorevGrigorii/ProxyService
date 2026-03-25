@@ -7,6 +7,7 @@ import (
 	"proxy-service/internal/config"
 
 	"github.com/hibiken/asynq"
+	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -24,17 +25,26 @@ func main() {
 		log.Fatal().Msg(err.Error())
 	}
 
+	// Redis
+	rdb := redis.NewFailoverClusterClient(&redis.FailoverOptions{
+		MasterName:    cfg.RedisConfig.MasterName,
+		SentinelAddrs: cfg.RedisConfig.Hosts,
+		Password:      cfg.RedisConfig.Password,
+		DB:            cfg.RedisConfig.Database,
+	})
+
+	// Task Handlers
+	cacheTask := background.CacheTask{
+		HTTPClient: &client.Client{},
+		Redis:      rdb,
+	}
+
 	// Asynq Redis
 	var redisOpt = &asynq.RedisFailoverClientOpt{
 		MasterName:    cfg.RedisConfig.MasterName,
 		SentinelAddrs: cfg.RedisConfig.Hosts,
 		Password:      cfg.RedisConfig.Password,
 		DB:            cfg.RedisConfig.Database,
-	}
-
-	// Task Handlers
-	cacheTask := background.CacheTask{
-		HTTPClient: &client.Client{},
 	}
 
 	// Asinq
