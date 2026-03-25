@@ -3,14 +3,16 @@ package main
 import (
 	"fmt"
 	"os"
-	"proxy-service/internal/client"
 	"proxy-service/internal/config"
 	"proxy-service/internal/database"
 	"proxy-service/internal/handlers"
+	"proxy-service/internal/httpclient"
 	"proxy-service/internal/middlewares"
+	"proxy-service/internal/redis_repositories"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -34,6 +36,15 @@ func main() {
 		log.Fatal().Msg(err.Error())
 	}
 
+	// Redis
+	rdb := redis.NewFailoverClusterClient(&redis.FailoverOptions{
+		MasterName:    cfg.RedisConfig.MasterName,
+		SentinelAddrs: cfg.RedisConfig.Hosts,
+		Password:      cfg.RedisConfig.Password,
+		DB:            cfg.RedisConfig.Database,
+		ReplicaOnly:   true,
+	})
+
 	// Router
 	router := gin.New()
 	router.SetTrustedProxies(nil)
@@ -49,8 +60,9 @@ func main() {
 
 	// Handlers
 	proxyHandlers := handlers.ProxyHandlers{
-		DBRepository: &database.DBRepository{DB: db},
-		HTTPClient:   &client.Client{},
+		DBRepository:    &database.DBRepository{DB: db},
+		HTTPClient:      &httpclient.Client{},
+		RedisRepository: &redis_repositories.RedisRepository{Redis: rdb},
 	}
 
 	router.GET("/ping", handlers.Ping)

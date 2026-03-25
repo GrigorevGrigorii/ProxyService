@@ -3,20 +3,19 @@ package background
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/url"
-	"proxy-service/internal/client"
+	"proxy-service/internal/httpclient"
 	"proxy-service/internal/models"
+	"proxy-service/internal/redis_repositories"
 	"time"
 
 	"github.com/hibiken/asynq"
-	"github.com/redis/go-redis/v9"
 )
 
 type CacheTask struct {
-	HTTPClient client.HTTPClient
-	Redis      *redis.ClusterClient
+	HTTPClient      httpclient.HTTPClient
+	RedisRepository redis_repositories.Repository
 }
 
 func (t *CacheTask) Run(ctx context.Context, task *asynq.Task) error {
@@ -51,15 +50,9 @@ func (t *CacheTask) Run(ctx context.Context, task *asynq.Task) error {
 		return err
 	}
 
-	t.Redis.HSet(
-		ctx,
-		fmt.Sprintf("%s:%s:%s:%s", service.Name, target.Path, target.Method, target.Query),
-		map[string]any{
-			"data":         string(body),
-			"status_code":  resp.StatusCode,
-			"content_type": resp.Header.Get("Content-Type"),
-		},
-	)
+	if err := t.RedisRepository.Set(ctx, service, target, string(body), resp.StatusCode, resp.Header.Get("Content-Type")); err != nil {
+		return err
+	}
 
 	return nil
 }

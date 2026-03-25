@@ -5,16 +5,20 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
-	"proxy-service/internal/client"
 	"proxy-service/internal/database"
+	"proxy-service/internal/httpclient"
+	"proxy-service/internal/models"
+	"proxy-service/internal/redis_repositories"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
 )
 
 type ProxyHandlers struct {
-	DBRepository database.Repository
-	HTTPClient   client.HTTPClient
+	DBRepository    database.Repository
+	HTTPClient      httpclient.HTTPClient
+	RedisRepository redis_repositories.Repository
 }
 
 func (h *ProxyHandlers) ProxyGetRequest(c *gin.Context) {
@@ -26,6 +30,20 @@ func (h *ProxyHandlers) ProxyGetRequest(c *gin.Context) {
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
+	}
+	target := service.Targets[0]
+
+	if target.CacheInterval != nil {
+		data, statusCode, contentType, err := h.RedisRepository.Get(
+			c.Request.Context(), models.ServiceDTOFromDBModel(*service), models.TargetDTOFromDBModel(target),
+		)
+		if err == nil {
+			log.Info().Msgf("Use cache response for %s, %s, %s, %s", service.Name, target.Path, http.MethodGet, target.Query)
+			c.Data(statusCode, contentType, []byte(data))
+			return
+		} else {
+			log.Warn().Msgf("Got error from redis for %s, %s, %s, %s: %s", service.Name, target.Path, http.MethodGet, target.Query, err.Error())
+		}
 	}
 
 	targetUrl := url.URL{

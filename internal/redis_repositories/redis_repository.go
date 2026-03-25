@@ -1,0 +1,55 @@
+package redis_repositories
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"proxy-service/internal/models"
+	"strconv"
+
+	"github.com/redis/go-redis/v9"
+)
+
+type Repository interface {
+	Set(ctx context.Context, service models.ServiceDTO, target models.TargetDTO, data string, statusCode int, contentType string) error
+	Get(ctx context.Context, service models.ServiceDTO, target models.TargetDTO) (string, int, string, error)
+}
+
+type RedisRepository struct {
+	Redis *redis.ClusterClient
+}
+
+func (r *RedisRepository) Set(ctx context.Context, service models.ServiceDTO, target models.TargetDTO, data string, statusCode int, contentType string) error {
+	return r.Redis.HSet(
+		ctx,
+		fmt.Sprintf("%s:%s:%s:%s", service.Name, target.Path, target.Method, target.Query),
+		map[string]any{
+			"data":         data,
+			"status_code":  statusCode,
+			"content_type": contentType,
+		},
+	).Err()
+}
+
+func (r *RedisRepository) Get(ctx context.Context, service models.ServiceDTO, target models.TargetDTO) (string, int, string, error) {
+	redisResult, err := r.Redis.HGetAll(
+		ctx,
+		fmt.Sprintf("%s:%s:%s:%s", service.Name, target.Path, target.Method, target.Query),
+	).Result()
+	if err != nil {
+		return "", 0, "", err
+	}
+	if len(redisResult) == 0 {
+		return "", 0, "", errors.New("Data not found")
+	}
+
+	data, _ := redisResult["data"]
+	statusCodeStr, _ := redisResult["status_code"]
+	contentType, _ := redisResult["content_type"]
+	statusCode, err := strconv.Atoi(statusCodeStr)
+	if err != nil {
+		return "", 0, "", err
+	}
+
+	return data, statusCode, contentType, nil
+}
