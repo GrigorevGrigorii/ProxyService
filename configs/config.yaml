@@ -11,8 +11,8 @@ proxy_server:
     master_name: redis-proxy
     hosts:
       - redis-sentinel-1:26379
-      - redis-sentinel-2:26380
-      - redis-sentinel-3:26381
+      - redis-sentinel-2:26379
+      - redis-sentinel-3:26379
     password: proxy_service_password
     database: 0
     pool_size: 20
@@ -34,8 +34,8 @@ background_worker:
     master_name: redis-proxy
     hosts:
       - redis-sentinel-1:26379
-      - redis-sentinel-2:26380
-      - redis-sentinel-3:26381
+      - redis-sentinel-2:26379
+      - redis-sentinel-3:26379
     password: proxy_service_password
     database: 0
     pool_size: 20
@@ -44,8 +44,8 @@ background_scheduler:
     master_name: redis-proxy
     hosts:
       - redis-sentinel-1:26379
-      - redis-sentinel-2:26380
-      - redis-sentinel-3:26381
+      - redis-sentinel-2:26379
+      - redis-sentinel-3:26379
     password: proxy_service_password
     database: 0
     pool_size: 20
