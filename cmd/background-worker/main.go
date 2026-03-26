@@ -32,7 +32,7 @@ func main() {
 		SentinelAddrs: cfg.RedisConfig.Hosts,
 		Password:      cfg.RedisConfig.Password,
 		DB:            cfg.RedisConfig.Database,
-		PoolSize:      20,
+		PoolSize:      cfg.RedisConfig.PoolSize,
 	})
 
 	// Task Handlers
@@ -47,6 +47,7 @@ func main() {
 		SentinelAddrs: cfg.RedisConfig.Hosts,
 		Password:      cfg.RedisConfig.Password,
 		DB:            cfg.RedisConfig.Database,
+		PoolSize:      cfg.RedisConfig.PoolSize,
 	}
 
 	// Asinq

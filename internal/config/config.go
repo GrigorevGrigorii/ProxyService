@@ -22,6 +22,7 @@ type RedisConfig struct {
 	Hosts      []string `mapstructure:"hosts"`
 	Password   string   `mapstructure:"password"`
 	Database   int      `mapstructure:"database"`
+	PoolSize   int      `mapstructure:"pool_size"`
 }
 
 type ProxyServerConfig struct {

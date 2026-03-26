@@ -38,6 +38,7 @@ func main() {
 		SentinelAddrs: cfg.RedisConfig.Hosts,
 		Password:      cfg.RedisConfig.Password,
 		DB:            cfg.RedisConfig.Database,
+		PoolSize:      cfg.RedisConfig.PoolSize,
 	}
 
 	// Asinq
