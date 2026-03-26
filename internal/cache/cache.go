@@ -1,4 +1,4 @@
-package redis_repositories
+package cache
 
 import (
 	"context"
@@ -15,11 +15,11 @@ type Repository interface {
 	Get(ctx context.Context, service models.ServiceDTO, target models.TargetDTO) (string, int, string, error)
 }
 
-type RedisRepository struct {
+type CacheRepository struct {
 	Redis *redis.ClusterClient
 }
 
-func (r *RedisRepository) Set(ctx context.Context, service models.ServiceDTO, target models.TargetDTO, data string, statusCode int, contentType string) error {
+func (r *CacheRepository) Set(ctx context.Context, service models.ServiceDTO, target models.TargetDTO, data string, statusCode int, contentType string) error {
 	return r.Redis.HSet(
 		ctx,
 		fmt.Sprintf("%s:%s:%s:%s", service.Name, target.Path, target.Method, target.Query),
@@ -31,7 +31,7 @@ func (r *RedisRepository) Set(ctx context.Context, service models.ServiceDTO, ta
 	).Err()
 }
 
-func (r *RedisRepository) Get(ctx context.Context, service models.ServiceDTO, target models.TargetDTO) (string, int, string, error) {
+func (r *CacheRepository) Get(ctx context.Context, service models.ServiceDTO, target models.TargetDTO) (string, int, string, error) {
 	redisResult, err := r.Redis.HGetAll(
 		ctx,
 		fmt.Sprintf("%s:%s:%s:%s", service.Name, target.Path, target.Method, target.Query),

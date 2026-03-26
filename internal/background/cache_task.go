@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"io"
 	"net/url"
+	"proxy-service/internal/cache"
 	"proxy-service/internal/httpclient"
 	"proxy-service/internal/models"
-	"proxy-service/internal/redis_repositories"
 	"time"
 
 	"github.com/hibiken/asynq"
@@ -15,7 +15,7 @@ import (
 
 type CacheTask struct {
 	HTTPClient      httpclient.HTTPClient
-	RedisRepository redis_repositories.Repository
+	CacheRepository cache.Repository
 }
 
 func (t *CacheTask) Run(ctx context.Context, task *asynq.Task) error {
@@ -50,7 +50,7 @@ func (t *CacheTask) Run(ctx context.Context, task *asynq.Task) error {
 		return err
 	}
 
-	if err := t.RedisRepository.Set(ctx, service, target, string(body), resp.StatusCode, resp.Header.Get("Content-Type")); err != nil {
+	if err := t.CacheRepository.Set(ctx, service, target, string(body), resp.StatusCode, resp.Header.Get("Content-Type")); err != nil {
 		return err
 	}
 

@@ -3,9 +3,9 @@ package main
 import (
 	"os"
 	"proxy-service/internal/background"
+	"proxy-service/internal/cache"
 	"proxy-service/internal/config"
 	"proxy-service/internal/httpclient"
-	"proxy-service/internal/redis_repositories"
 
 	"github.com/hibiken/asynq"
 	"github.com/redis/go-redis/v9"
@@ -37,7 +37,7 @@ func main() {
 	// Task Handlers
 	cacheTask := background.CacheTask{
 		HTTPClient:      &httpclient.Client{},
-		RedisRepository: &redis_repositories.RedisRepository{Redis: rdb},
+		CacheRepository: &cache.CacheRepository{Redis: rdb},
 	}
 
 	// Asynq Redis

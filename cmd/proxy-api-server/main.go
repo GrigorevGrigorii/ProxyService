@@ -3,12 +3,12 @@ package main
 import (
 	"fmt"
 	"os"
+	"proxy-service/internal/cache"
 	"proxy-service/internal/config"
 	"proxy-service/internal/database"
 	"proxy-service/internal/handlers"
 	"proxy-service/internal/httpclient"
 	"proxy-service/internal/middlewares"
-	"proxy-service/internal/redis_repositories"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -62,7 +62,7 @@ func main() {
 	proxyHandlers := handlers.ProxyHandlers{
 		DBRepository:    &database.DBRepository{DB: db},
 		HTTPClient:      &httpclient.Client{},
-		RedisRepository: &redis_repositories.RedisRepository{Redis: rdb},
+		CacheRepository: &cache.CacheRepository{Redis: rdb},
 	}
 
 	router.GET("/ping", handlers.Ping)

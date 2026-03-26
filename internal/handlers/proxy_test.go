@@ -100,19 +100,19 @@ func (s *stubDBRepository) Delete(ctx context.Context, name string) error {
 	return errors.New("unexpected Delete call")
 }
 
-type stubRedisReposirory struct {
+type stubCacheRepository struct {
 	setFunc func(ctx context.Context, service models.ServiceDTO, target models.TargetDTO, data string, statusCode int, contentType string) error
 	getFunc func(ctx context.Context, service models.ServiceDTO, target models.TargetDTO) (string, int, string, error)
 }
 
-func (s *stubRedisReposirory) Set(ctx context.Context, service models.ServiceDTO, target models.TargetDTO, data string, statusCode int, contentType string) error {
+func (s *stubCacheRepository) Set(ctx context.Context, service models.ServiceDTO, target models.TargetDTO, data string, statusCode int, contentType string) error {
 	if s.setFunc == nil {
 		return errors.New("unexpected Set call")
 	}
 	return s.setFunc(ctx, service, target, data, statusCode, contentType)
 }
 
-func (s *stubRedisReposirory) Get(ctx context.Context, service models.ServiceDTO, target models.TargetDTO) (string, int, string, error) {
+func (s *stubCacheRepository) Get(ctx context.Context, service models.ServiceDTO, target models.TargetDTO) (string, int, string, error) {
 	if s.getFunc == nil {
 		return "", 0, "", errors.New("unexpected Get call")
 	}
@@ -130,7 +130,7 @@ func TestProxyGetRequest_NotAllowedService(t *testing.T) {
 			},
 		},
 		HTTPClient: &stubHttpClient{resp: httpResp(http.StatusOK, "no")},
-		RedisRepository: &stubRedisReposirory{
+		CacheRepository: &stubCacheRepository{
 			getFunc: func(ctx context.Context, service models.ServiceDTO, target models.TargetDTO) (string, int, string, error) {
 				return "", 0, "", errors.New("Data not found")
 			},
@@ -161,7 +161,7 @@ func TestProxyGetRequest_ProxyResponseData(t *testing.T) {
 			},
 		},
 		HTTPClient: stub,
-		RedisRepository: &stubRedisReposirory{
+		CacheRepository: &stubCacheRepository{
 			getFunc: func(ctx context.Context, service models.ServiceDTO, target models.TargetDTO) (string, int, string, error) {
 				if service.Name != svc.Name || target.Path != svc.Targets[0].Path || target.Query != svc.Targets[0].Query {
 					t.Fatalf("unexpected args: %v %v", service, target)
@@ -210,7 +210,7 @@ func TestProxyGetRequest_ContextCancelled(t *testing.T) {
 			},
 		},
 		HTTPClient: &stubHttpClient{resp: httpResp(http.StatusOK, "ok")},
-		RedisRepository: &stubRedisReposirory{
+		CacheRepository: &stubCacheRepository{
 			getFunc: func(ctx context.Context, service models.ServiceDTO, target models.TargetDTO) (string, int, string, error) {
 				if service.Name != svc.Name || target.Path != svc.Targets[0].Path || target.Query != svc.Targets[0].Query {
 					t.Fatalf("unexpected args: %v %v", service, target)
@@ -254,7 +254,7 @@ func TestProxyGetRequest_ClientError(t *testing.T) {
 			},
 		},
 		HTTPClient: stub,
-		RedisRepository: &stubRedisReposirory{
+		CacheRepository: &stubCacheRepository{
 			getFunc: func(ctx context.Context, service models.ServiceDTO, target models.TargetDTO) (string, int, string, error) {
 				if service.Name != svc.Name || target.Path != svc.Targets[0].Path || target.Query != svc.Targets[0].Query {
 					t.Fatalf("unexpected args: %v %v", service, target)
@@ -296,7 +296,7 @@ func TestProxyGetRequest_ReturnCachedData(t *testing.T) {
 			},
 		},
 		HTTPClient: stub,
-		RedisRepository: &stubRedisReposirory{
+		CacheRepository: &stubCacheRepository{
 			getFunc: func(ctx context.Context, service models.ServiceDTO, target models.TargetDTO) (string, int, string, error) {
 				if service.Name != svc.Name || target.Path != svc.Targets[0].Path || target.Query != svc.Targets[0].Query {
 					t.Fatalf("unexpected args: %v %v", service, target)

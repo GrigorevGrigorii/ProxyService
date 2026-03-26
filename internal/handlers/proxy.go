@@ -5,10 +5,10 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
+	"proxy-service/internal/cache"
 	"proxy-service/internal/database"
 	"proxy-service/internal/httpclient"
 	"proxy-service/internal/models"
-	"proxy-service/internal/redis_repositories"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -18,7 +18,7 @@ import (
 type ProxyHandlers struct {
 	DBRepository    database.Repository
 	HTTPClient      httpclient.HTTPClient
-	RedisRepository redis_repositories.Repository
+	CacheRepository cache.Repository
 }
 
 func (h *ProxyHandlers) ProxyGetRequest(c *gin.Context) {
@@ -34,7 +34,7 @@ func (h *ProxyHandlers) ProxyGetRequest(c *gin.Context) {
 	target := service.Targets[0]
 
 	if target.CacheInterval != nil {
-		data, statusCode, contentType, err := h.RedisRepository.Get(
+		data, statusCode, contentType, err := h.CacheRepository.Get(
 			c.Request.Context(), models.ServiceDTOFromDBModel(*service), models.TargetDTOFromDBModel(target),
 		)
 		if err == nil {
