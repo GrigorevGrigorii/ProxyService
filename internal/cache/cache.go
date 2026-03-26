@@ -21,8 +21,7 @@ type CacheRepository struct {
 
 func (r *CacheRepository) Set(ctx context.Context, service models.ServiceDTO, target models.TargetDTO, data string, statusCode int, contentType string) error {
 	return r.Redis.HSet(
-		ctx,
-		fmt.Sprintf("%s:%s:%s:%s", service.Name, target.Path, target.Method, target.Query),
+		ctx, cacheKey(service, target),
 		map[string]any{
 			"data":         data,
 			"status_code":  statusCode,
@@ -32,10 +31,7 @@ func (r *CacheRepository) Set(ctx context.Context, service models.ServiceDTO, ta
 }
 
 func (r *CacheRepository) Get(ctx context.Context, service models.ServiceDTO, target models.TargetDTO) (string, int, string, error) {
-	redisResult, err := r.Redis.HGetAll(
-		ctx,
-		fmt.Sprintf("%s:%s:%s:%s", service.Name, target.Path, target.Method, target.Query),
-	).Result()
+	redisResult, err := r.Redis.HGetAll(ctx, cacheKey(service, target)).Result()
 	if err != nil {
 		return "", 0, "", err
 	}
@@ -52,4 +48,8 @@ func (r *CacheRepository) Get(ctx context.Context, service models.ServiceDTO, ta
 	}
 
 	return data, statusCode, contentType, nil
+}
+
+func cacheKey(service models.ServiceDTO, target models.TargetDTO) string {
+	return fmt.Sprintf("%s:%s:%s:%s", service.Name, target.Path, target.Method, target.Query)
 }
