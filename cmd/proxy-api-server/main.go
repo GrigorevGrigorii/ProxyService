@@ -43,6 +43,7 @@ func main() {
 		Password:      cfg.RedisConfig.Password,
 		DB:            cfg.RedisConfig.Database,
 		ReplicaOnly:   true,
+		PoolSize:      20,
 	})
 
 	// Router

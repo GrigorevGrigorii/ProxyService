@@ -3,6 +3,7 @@ package background
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/url"
 	"proxy-service/internal/cache"
@@ -11,6 +12,7 @@ import (
 	"time"
 
 	"github.com/hibiken/asynq"
+	"github.com/rs/zerolog/log"
 )
 
 type CacheTask struct {
@@ -19,6 +21,8 @@ type CacheTask struct {
 }
 
 func (t *CacheTask) Run(ctx context.Context, task *asynq.Task) error {
+	log.Info().Msgf("Running task with payload %s", string(task.Payload()))
+
 	var service models.ServiceDTO
 	if err := json.Unmarshal(task.Payload(), &service); err != nil {
 		return err
@@ -45,6 +49,11 @@ func (t *CacheTask) Run(ctx context.Context, task *asynq.Task) error {
 
 	defer resp.Body.Close()
 
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		log.Error().Msgf("Got %d for %s, %s, %s. Do not save to cache", resp.StatusCode, service.Name, target.Path, target.Query)
+		return errors.New("Unsuccessful http response")
+	}
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
@@ -54,5 +63,6 @@ func (t *CacheTask) Run(ctx context.Context, task *asynq.Task) error {
 		return err
 	}
 
+	log.Info().Msgf("Successfully saved response to cache for %s, %s, %s", service.Name, target.Path, target.Query)
 	return nil
 }
