@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"net/http"
 	"net/url"
 	"proxy-service/internal/cache"
 	"proxy-service/internal/httpclient"
@@ -28,6 +29,10 @@ func (t *CacheTask) Run(ctx context.Context, task *asynq.Task) error {
 		return err
 	}
 	target := service.Targets[0]
+
+	if target.Method != http.MethodGet {
+		return errors.New("Cache is supported for GET requests only")
+	}
 
 	targetUrl := url.URL{
 		Scheme:   service.Scheme,

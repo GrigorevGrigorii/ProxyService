@@ -24,6 +24,10 @@ func (p *DynamicProvider) GetConfigs() ([]*asynq.PeriodicTaskConfig, error) {
 
 	for _, service := range servicesToCache {
 		for _, target := range service.Targets {
+			if target.CacheInterval == nil {
+				continue
+			}
+
 			payload, err := getPayload(models.ServiceDTOFromDBModel(service), models.TargetDTOFromDBModel(target))
 			if err != nil {
 				return nil, err
