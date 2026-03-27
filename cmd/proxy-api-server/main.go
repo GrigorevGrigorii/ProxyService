@@ -44,7 +44,7 @@ func main() {
 	}
 	rdb := redis.NewUniversalClient(&redis.UniversalOptions{
 		MasterName: cfg.RedisConfig.MasterName,
-		Addrs:      cfg.RedisConfig.Hosts,
+		Addrs:      cfg.RedisConfig.Addrs,
 		Password:   cfg.RedisConfig.Password,
 		DB:         cfg.RedisConfig.Database,
 		PoolSize:   cfg.RedisConfig.PoolSize,

@@ -19,7 +19,7 @@ type PGConfig struct {
 
 type RedisConfig struct {
 	MasterName string   `mapstructure:"master_name"`
-	Hosts      []string `mapstructure:"hosts"`
+	Addrs      []string `mapstructure:"addrs"`
 	Password   string   `mapstructure:"password"`
 	Database   int      `mapstructure:"database"`
 	PoolSize   int      `mapstructure:"pool_size"`
