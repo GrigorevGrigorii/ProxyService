@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"os"
 	"proxy-service/internal/background"
 	"proxy-service/internal/cache"
@@ -27,36 +28,28 @@ func main() {
 	}
 
 	// Redis
-	rdb := redis.NewFailoverClusterClient(&redis.FailoverOptions{
-		MasterName:    cfg.RedisConfig.MasterName,
-		SentinelAddrs: cfg.RedisConfig.Hosts,
-		Password:      cfg.RedisConfig.Password,
-		DB:            cfg.RedisConfig.Database,
-		PoolSize:      cfg.RedisConfig.PoolSize,
+	var redisTLSConfig *tls.Config
+	if cfg.RedisConfig.EnableTLS {
+		redisTLSConfig = &tls.Config{}
+	}
+	rdb := redis.NewUniversalClient(&redis.UniversalOptions{
+		Addrs:      cfg.RedisConfig.Hosts,
+		MasterName: cfg.RedisConfig.MasterName,
+		Password:   cfg.RedisConfig.Password,
+		DB:         cfg.RedisConfig.Database,
+		PoolSize:   cfg.RedisConfig.PoolSize,
+		TLSConfig:  redisTLSConfig,
+		ReadOnly:   cfg.RedisConfig.ReadOnly,
 	})
 
 	// Task Handlers
 	cacheTask := background.CacheTask{
 		HTTPClient:      &httpclient.Client{},
-		CacheRepository: &cache.CacheRepository{Redis: rdb},
-	}
-
-	// Asynq Redis
-	var redisOpt = &asynq.RedisFailoverClientOpt{
-		MasterName:    cfg.RedisConfig.MasterName,
-		SentinelAddrs: cfg.RedisConfig.Hosts,
-		Password:      cfg.RedisConfig.Password,
-		DB:            cfg.RedisConfig.Database,
-		PoolSize:      cfg.RedisConfig.PoolSize,
+		CacheRepository: &cache.CacheRepository{Redis: &rdb},
 	}
 
 	// Asinq
-	srv := asynq.NewServer(
-		redisOpt,
-		asynq.Config{
-			Concurrency: cfg.Concurrency,
-		},
-	)
+	srv := asynq.NewServerFromRedisClient(rdb, asynq.Config{Concurrency: cfg.Concurrency})
 
 	mux := asynq.NewServeMux()
 	mux.HandleFunc("cache_task", cacheTask.Run)

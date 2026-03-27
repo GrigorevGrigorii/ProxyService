@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"os"
 	"proxy-service/internal/background"
 	"proxy-service/internal/config"
@@ -8,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hibiken/asynq"
+	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -32,20 +34,26 @@ func main() {
 	}
 	dbRepository := database.DBRepository{DB: db}
 
-	// Asynq Redis
-	var redisOpt = &asynq.RedisFailoverClientOpt{
-		MasterName:    cfg.RedisConfig.MasterName,
-		SentinelAddrs: cfg.RedisConfig.Hosts,
-		Password:      cfg.RedisConfig.Password,
-		DB:            cfg.RedisConfig.Database,
-		PoolSize:      cfg.RedisConfig.PoolSize,
+	// Redis
+	var redisTLSConfig *tls.Config
+	if cfg.RedisConfig.EnableTLS {
+		redisTLSConfig = &tls.Config{}
 	}
+	rdb := redis.NewUniversalClient(&redis.UniversalOptions{
+		Addrs:      cfg.RedisConfig.Hosts,
+		MasterName: cfg.RedisConfig.MasterName,
+		Password:   cfg.RedisConfig.Password,
+		DB:         cfg.RedisConfig.Database,
+		PoolSize:   cfg.RedisConfig.PoolSize,
+		TLSConfig:  redisTLSConfig,
+		ReadOnly:   cfg.RedisConfig.ReadOnly,
+	})
 
 	// Asinq
 	provider := &background.DynamicProvider{DBRepository: dbRepository}
 	mgr, err := asynq.NewPeriodicTaskManager(
 		asynq.PeriodicTaskManagerOpts{
-			RedisConnOpt:               redisOpt,
+			RedisUniversalClient:       rdb,
 			PeriodicTaskConfigProvider: provider,
 			SyncInterval:               30 * time.Second,
 			SchedulerOpts: &asynq.SchedulerOpts{

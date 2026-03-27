@@ -23,6 +23,8 @@ type RedisConfig struct {
 	Password   string   `mapstructure:"password"`
 	Database   int      `mapstructure:"database"`
 	PoolSize   int      `mapstructure:"pool_size"`
+	EnableTLS  bool     `mapstructure:"enable_tls"`
+	ReadOnly   bool     `mapstructure:"read_only"`
 }
 
 type ProxyServerConfig struct {

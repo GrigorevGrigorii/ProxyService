@@ -8,6 +8,8 @@ proxy_server:
     database: proxy_service_db
     sslmode: disable
   redis:
+    enable_tls: false
+    read_only: true
     master_name: redis-proxy
     hosts:
       - redis-sentinel-1:26379
@@ -31,6 +33,7 @@ admin_server:
 background_worker:
   concurrency: 4
   redis:
+    enable_tls: false
     master_name: redis-proxy
     hosts:
       - redis-sentinel-1:26379
@@ -41,6 +44,7 @@ background_worker:
     pool_size: 20
 background_scheduler:
   redis:
+    enable_tls: false
     master_name: redis-proxy
     hosts:
       - redis-sentinel-1:26379

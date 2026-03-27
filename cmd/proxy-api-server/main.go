@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"fmt"
 	"os"
 	"proxy-service/internal/cache"
@@ -37,13 +38,18 @@ func main() {
 	}
 
 	// Redis
-	rdb := redis.NewFailoverClusterClient(&redis.FailoverOptions{
-		MasterName:    cfg.RedisConfig.MasterName,
-		SentinelAddrs: cfg.RedisConfig.Hosts,
-		Password:      cfg.RedisConfig.Password,
-		DB:            cfg.RedisConfig.Database,
-		ReplicaOnly:   true,
-		PoolSize:      cfg.RedisConfig.PoolSize,
+	var redisTLSConfig *tls.Config
+	if cfg.RedisConfig.EnableTLS {
+		redisTLSConfig = &tls.Config{}
+	}
+	rdb := redis.NewUniversalClient(&redis.UniversalOptions{
+		MasterName: cfg.RedisConfig.MasterName,
+		Addrs:      cfg.RedisConfig.Hosts,
+		Password:   cfg.RedisConfig.Password,
+		DB:         cfg.RedisConfig.Database,
+		PoolSize:   cfg.RedisConfig.PoolSize,
+		TLSConfig:  redisTLSConfig,
+		ReadOnly:   cfg.RedisConfig.ReadOnly,
 	})
 
 	// Router
@@ -63,7 +69,7 @@ func main() {
 	proxyHandlers := handlers.ProxyHandlers{
 		DBRepository:    &database.DBRepository{DB: db},
 		HTTPClient:      &httpclient.Client{},
-		CacheRepository: &cache.CacheRepository{Redis: rdb},
+		CacheRepository: &cache.CacheRepository{Redis: &rdb},
 	}
 
 	router.GET("/ping", handlers.Ping)
