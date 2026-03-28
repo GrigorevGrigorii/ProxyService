@@ -6,6 +6,7 @@ pg:
   port: 5432
   database: proxy_service_db
   sslmode: disable
+  sslrootcert: ''
 redis:
   enable_tls: false
   read_only: true

@@ -6,3 +6,4 @@ pg:
   port: 5432
   database: proxy_service_db
   sslmode: disable
+  sslrootcert: ''

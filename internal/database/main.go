@@ -21,12 +21,13 @@ const (
 func InitDB(cfg *config.PGConfig) (*gorm.DB, error) {
 	log.Info().
 		Msgf(
-			"Init DB with user=%s, host=%s, port=%d, database=%s, sslmode=%s",
+			"Init DB with user=%s, host=%s, port=%d, database=%s, sslmode=%s, sslrootcert=%s",
 			cfg.Username,
 			cfg.Host,
 			cfg.Port,
 			cfg.Database,
 			cfg.SSLMode,
+			cfg.SSLRootCert,
 		)
 
 	query := url.Values{}

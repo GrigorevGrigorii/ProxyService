@@ -14,6 +14,9 @@ COPY . .
 
 RUN go build -o ./bin/main cmd/${SERVICE}/main.go
 
+# AWS certs
+RUN wget -O ./global-bundle.pem https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem
+
 FROM alpine:3.23 AS api-server
 
 ARG PORT
@@ -22,10 +25,9 @@ ENV PORT=${PORT}
 
 WORKDIR /app
 
-RUN apk add --no-cache ca-certificates
-
 COPY --from=builder /app/bin/main ./main
 COPY --from=builder /app/configs ./configs
+COPY --from=builder /app/global-bundle.pem ./global-bundle.pem
 
 EXPOSE ${PORT}
 
@@ -35,9 +37,8 @@ FROM alpine:3.23 AS background
 
 WORKDIR /app
 
-RUN apk add --no-cache ca-certificates
-
 COPY --from=builder /app/bin/main ./main
 COPY --from=builder /app/configs ./configs
+COPY --from=builder /app/global-bundle.pem ./global-bundle.pem
 
 CMD ["./main"]
