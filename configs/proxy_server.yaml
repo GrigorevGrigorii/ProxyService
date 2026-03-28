@@ -1,0 +1,19 @@
+port: 8080
+pg:
+  user: proxy_service_user
+  password: proxy_service_password
+  host: postgres
+  port: 5432
+  database: proxy_service_db
+  sslmode: disable
+redis:
+  enable_tls: false
+  read_only: true
+  master_name: redis-proxy
+  addrs:
+    - redis-sentinel-1:26379
+    - redis-sentinel-2:26379
+    - redis-sentinel-3:26379
+  password: proxy_service_password
+  database: 0
+  pool_size: 20

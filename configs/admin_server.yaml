@@ -1,0 +1,8 @@
+port: 8082
+pg:
+  user: proxy_service_user
+  password: proxy_service_password
+  host: postgres
+  port: 5432
+  database: proxy_service_db
+  sslmode: disable

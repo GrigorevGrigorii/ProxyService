@@ -60,8 +60,10 @@ type LoadableConfig interface {
 }
 
 func LoadConfig[T LoadableConfig]() (*T, error) {
+	var cfg T
+
 	v := viper.New()
-	v.SetConfigName("config")
+	v.SetConfigName(configName(cfg))
 	v.SetConfigType("yaml")
 	v.AddConfigPath("./configs")
 
@@ -72,8 +74,7 @@ func LoadConfig[T LoadableConfig]() (*T, error) {
 		return nil, err
 	}
 
-	var cfg T
-	if err := v.UnmarshalKey(configName(cfg), &cfg); err != nil {
+	if err := v.Unmarshal(&cfg); err != nil {
 		return nil, err
 	}
 	return &cfg, nil

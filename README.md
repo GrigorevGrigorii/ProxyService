@@ -59,7 +59,7 @@ Base: `http://localhost:8081`
 
 ## Configuration
 
-Configuration is defined in `configs/config.yaml`. The file includes settings for the proxy, admin, mock servers, PostgreSQL connections, Redis, and background tasks.
+Configuration is defined in `configs/`. The files include settings for the proxy, admin, mock servers, PostgreSQL connections, Redis, and background tasks.
 
 ## Caching and Background Tasks
 

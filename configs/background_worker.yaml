@@ -1,0 +1,11 @@
+concurrency: 4
+redis:
+  enable_tls: false
+  master_name: redis-proxy
+  addrs:
+    - redis-sentinel-1:26379
+    - redis-sentinel-2:26379
+    - redis-sentinel-3:26379
+  password: proxy_service_password
+  database: 0
+  pool_size: 20
