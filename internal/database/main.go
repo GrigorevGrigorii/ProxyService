@@ -29,12 +29,17 @@ func InitDB(cfg *config.PGConfig) (*gorm.DB, error) {
 			cfg.SSLMode,
 		)
 
+	query := url.Values{}
+	query.Set("sslmode", cfg.SSLMode)
+	if cfg.SSLRootCert != "" {
+		query.Set("sslrootcert", cfg.SSLRootCert)
+	}
 	pgDsn := url.URL{
 		Scheme:   "postgresql",
 		User:     url.UserPassword(cfg.Username, cfg.Password),
 		Host:     fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
 		Path:     cfg.Database,
-		RawQuery: "sslmode=" + cfg.SSLMode,
+		RawQuery: query.Encode(),
 	}
 	db, err := gorm.Open(postgres.Open(pgDsn.String()), &gorm.Config{TranslateError: true})
 	if err != nil {

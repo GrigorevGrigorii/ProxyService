@@ -9,12 +9,13 @@ import (
 )
 
 type PGConfig struct {
-	Username string `mapstructure:"user"`
-	Password string `mapstructure:"password"`
-	Host     string `mapstructure:"host"`
-	Port     int    `mapstructure:"port"`
-	Database string `mapstructure:"database"`
-	SSLMode  string `mapstructure:"sslmode"`
+	Username    string `mapstructure:"user"`
+	Password    string `mapstructure:"password"`
+	Host        string `mapstructure:"host"`
+	Port        int    `mapstructure:"port"`
+	Database    string `mapstructure:"database"`
+	SSLMode     string `mapstructure:"sslmode"`
+	SSLRootCert string `mapstructure:"sslrootcert"`
 }
 
 type RedisConfig struct {
