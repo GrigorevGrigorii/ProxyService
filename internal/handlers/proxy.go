@@ -24,7 +24,7 @@ type ProxyHandlers struct {
 func (h *ProxyHandlers) ProxyGetRequest(c *gin.Context) {
 	service, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"), c.Request.URL.Query().Encode())
 	if errors.Is(err, database.ErrNotFound) {
-		c.IndentedJSON(http.StatusForbidden, gin.H{"message": "service or path is not allowed"})
+		c.IndentedJSON(http.StatusForbidden, gin.H{"message": "service, path or query params are not allowed"})
 		return
 	}
 	if err != nil {
@@ -73,7 +73,7 @@ func (h *ProxyHandlers) ProxyGetRequest(c *gin.Context) {
 func (h *ProxyHandlers) ProxyPostRequest(c *gin.Context) {
 	_, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"), "")
 	if errors.Is(err, database.ErrNotFound) {
-		c.IndentedJSON(http.StatusForbidden, gin.H{"message": "service or path is not allowed"})
+		c.IndentedJSON(http.StatusForbidden, gin.H{"message": "service, path or query params are not allowed"})
 		return
 	}
 	if err != nil {
@@ -86,7 +86,7 @@ func (h *ProxyHandlers) ProxyPostRequest(c *gin.Context) {
 func (h *ProxyHandlers) ProxyPutRequest(c *gin.Context) {
 	_, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"), "")
 	if errors.Is(err, database.ErrNotFound) {
-		c.IndentedJSON(http.StatusForbidden, gin.H{"message": "service or path is not allowed"})
+		c.IndentedJSON(http.StatusForbidden, gin.H{"message": "service, path or query params are not allowed"})
 		return
 	}
 	if err != nil {
@@ -99,7 +99,7 @@ func (h *ProxyHandlers) ProxyPutRequest(c *gin.Context) {
 func (h *ProxyHandlers) ProxyDeleteRequest(c *gin.Context) {
 	_, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"), "")
 	if errors.Is(err, database.ErrNotFound) {
-		c.IndentedJSON(http.StatusForbidden, gin.H{"message": "service or path is not allowed"})
+		c.IndentedJSON(http.StatusForbidden, gin.H{"message": "service, path or query params are not allowed"})
 		return
 	}
 	if err != nil {

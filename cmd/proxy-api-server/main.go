@@ -43,9 +43,9 @@ func main() {
 		redisTLSConfig = &tls.Config{}
 	}
 	rdb := redis.NewUniversalClient(&redis.UniversalOptions{
-		MasterName: cfg.RedisConfig.MasterName,
+		MasterName: cfg.RedisConfig.GetMasterName(),
 		Addrs:      cfg.RedisConfig.Addrs,
-		Password:   cfg.RedisConfig.Password,
+		Password:   cfg.RedisConfig.GetPassword(),
 		DB:         cfg.RedisConfig.Database,
 		PoolSize:   cfg.RedisConfig.PoolSize,
 		TLSConfig:  redisTLSConfig,

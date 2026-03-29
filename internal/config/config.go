@@ -8,6 +8,8 @@ import (
 	"github.com/spf13/viper"
 )
 
+const emptyVal = "!empty!"
+
 type PGConfig struct {
 	Username    string `mapstructure:"user"`
 	Password    string `mapstructure:"password"`
@@ -26,6 +28,20 @@ type RedisConfig struct {
 	PoolSize   int      `mapstructure:"pool_size"`
 	EnableTLS  bool     `mapstructure:"enable_tls"`
 	ReadOnly   bool     `mapstructure:"read_only"`
+}
+
+func (cfg RedisConfig) GetPassword() string {
+	if cfg.Password == emptyVal {
+		return ""
+	}
+	return cfg.Password
+}
+
+func (cfg RedisConfig) GetMasterName() string {
+	if cfg.MasterName == emptyVal {
+		return ""
+	}
+	return cfg.MasterName
 }
 
 type ProxyServerConfig struct {
