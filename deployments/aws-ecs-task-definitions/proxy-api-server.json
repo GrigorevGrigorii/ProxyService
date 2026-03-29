@@ -1,0 +1,141 @@
+{
+    "taskDefinitionArn": "arn:aws:ecs:ap-southeast-1:145026616839:task-definition/ProxyService-proxy-api-server:26",
+    "containerDefinitions": [
+        {
+            "name": "Main",
+            "image": "docker.io/grigorevgrigorii/proxy-service_proxy-api-server:1.0.7",
+            "cpu": 1024,
+            "memory": 2048,
+            "memoryReservation": 2048,
+            "portMappings": [
+                {
+                    "containerPort": 80,
+                    "hostPort": 80,
+                    "protocol": "tcp"
+                }
+            ],
+            "essential": true,
+            "command": [],
+            "environment": [
+                {
+                    "name": "REDIS_MASTER_NAME",
+                    "value": "!empty!"
+                },
+                {
+                    "name": "PORT",
+                    "value": "80"
+                },
+                {
+                    "name": "GIN_MODE",
+                    "value": "release"
+                },
+                {
+                    "name": "PG_HOST",
+                    "value": "proxy-service.crsy0km663m8.ap-southeast-1.rds.amazonaws.com"
+                },
+                {
+                    "name": "PG_DATABASE",
+                    "value": "proxy_service"
+                },
+                {
+                    "name": "PG_USER",
+                    "value": "proxy_admin"
+                },
+                {
+                    "name": "PG_PORT",
+                    "value": "5432"
+                },
+                {
+                    "name": "REDIS_ENABLE_TLS",
+                    "value": "true"
+                },
+                {
+                    "name": "REDIS_READ_ONLY",
+                    "value": "true"
+                },
+                {
+                    "name": "PG_SSLROOTCERT",
+                    "value": "./global-bundle.pem"
+                },
+                {
+                    "name": "REDIS_DATABASE",
+                    "value": "0"
+                },
+                {
+                    "name": "REDIS_PASSWORD",
+                    "value": "!empty!"
+                },
+                {
+                    "name": "REDIS_ADDRS",
+                    "value": "proxy-service-prod-vleofz.serverless.apse1.cache.amazonaws.com:6379"
+                },
+                {
+                    "name": "PG_SSLMODE",
+                    "value": "verify-full"
+                }
+            ],
+            "mountPoints": [],
+            "volumesFrom": [],
+            "secrets": [
+                {
+                    "name": "PG_PASSWORD",
+                    "valueFrom": "arn:aws:secretsmanager:ap-southeast-1:145026616839:secret:rds!db-06f97201-5282-40a7-86be-0e9f6f20f995-wdQyHT:password::"
+                }
+            ],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/aws/ecs/ProxyService/proxy-api-server-1bcf",
+                    "awslogs-region": "ap-southeast-1",
+                    "awslogs-stream-prefix": "ecs"
+                }
+            }
+        }
+    ],
+    "family": "ProxyService-proxy-api-server",
+    "executionRoleArn": "arn:aws:iam::145026616839:role/service-role/ecsTaskExecutionRole",
+    "networkMode": "awsvpc",
+    "revision": 26,
+    "volumes": [],
+    "status": "ACTIVE",
+    "requiresAttributes": [
+        {
+            "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+        },
+        {
+            "name": "ecs.capability.execution-role-awslogs"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+        },
+        {
+            "name": "ecs.capability.secrets.asm.environment-variables"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.21"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+        },
+        {
+            "name": "ecs.capability.task-eni"
+        }
+    ],
+    "placementConstraints": [],
+    "compatibilities": [
+        "EC2",
+        "MANAGED_INSTANCES",
+        "FARGATE"
+    ],
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "cpu": "1024",
+    "memory": "2048",
+    "runtimePlatform": {
+        "cpuArchitecture": "X86_64",
+        "operatingSystemFamily": "LINUX"
+    },
+    "registeredAt": "2026-03-29T11:19:28.553Z",
+    "tags": []
+}
