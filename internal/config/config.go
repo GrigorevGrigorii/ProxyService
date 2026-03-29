@@ -54,9 +54,16 @@ type BackgroundSchedulerConfig struct {
 	PGConfig    PGConfig    `mapstructure:"pg"`
 }
 
+type MigrationConfig struct {
+	Source                  string   `mapstructure:"source"`
+	PGConfig                PGConfig `mapstructure:"pg"`
+	PGPasswordAWSSecretName string   `mapstructure:"pg_password_aws_secret_name"`
+	AWSRegion               string   `mapstructure:"aws_region"`
+}
+
 // Configs of all services must end with "Config"
 type LoadableConfig interface {
-	ProxyServerConfig | MockServerConfig | AdminServerConfig | BackgroundWorkerConfig | BackgroundSchedulerConfig
+	ProxyServerConfig | MockServerConfig | AdminServerConfig | BackgroundWorkerConfig | BackgroundSchedulerConfig | MigrationConfig
 }
 
 func LoadConfig[T LoadableConfig]() (*T, error) {

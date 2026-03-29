@@ -1,10 +1,10 @@
 .PHONY: test butify start-proxy start-mock start-containers start-containers-with-build stop-containers migrate
 
 butify:
-	go fmt ./internal ./cmd
-	golint -set_exit_status ./internal ./cmd
-	gofmt -w -e ./internal ./cmd
-	goimports -w -e ./internal ./cmd
+	go fmt ./internal ./cmd ./scripts
+	golint -set_exit_status ./internal ./cmd ./scripts
+	gofmt -w -e ./internal ./cmd ./scripts
+	goimports -w -e ./internal ./cmd ./scripts
 
 start-proxy:
 	go run cmd/proxy-api-server/main.go

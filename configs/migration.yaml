@@ -1,0 +1,11 @@
+source: file:internal/database/migrations
+pg_password_aws_secret_name: ''
+aws_region: ''
+pg:
+  user: proxy_service_user
+  password: proxy_service_password
+  host: 127.0.0.1
+  port: 5432
+  database: proxy_service_db
+  sslmode: disable
+  sslrootcert: ''
