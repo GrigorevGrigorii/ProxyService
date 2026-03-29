@@ -2,7 +2,15 @@ name: Deploy Multiple Microservices to ECS
 
 on:
   push:
-    branches: ["master"]
+    paths:
+      - "cmd/**"
+      - "build/**"
+      - "configs/**"
+      - "deployments/**"
+      - "internal/**"
+      - ".github/workflows/deploy_to_aws.yml"
+    branches:
+      - master
 
 env:
   AWS_REGION: ap-southeast-1
