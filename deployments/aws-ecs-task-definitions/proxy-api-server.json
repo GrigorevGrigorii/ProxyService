@@ -1,9 +1,9 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:ap-southeast-1:145026616839:task-definition/ProxyService-proxy-api-server:26",
+    "family": "ProxyService-proxy-api-server",
     "containerDefinitions": [
         {
             "name": "Main",
-            "image": "docker.io/grigorevgrigorii/proxy-service_proxy-api-server:1.0.7",
+            "image": "",
             "cpu": 1024,
             "memory": 2048,
             "memoryReservation": 2048,
@@ -15,7 +15,6 @@
                 }
             ],
             "essential": true,
-            "command": [],
             "environment": [
                 {
                     "name": "REDIS_MASTER_NAME",
@@ -89,44 +88,14 @@
                     "awslogs-region": "ap-southeast-1",
                     "awslogs-stream-prefix": "ecs"
                 }
-            }
+            },
+            "systemControls": []
         }
     ],
-    "family": "ProxyService-proxy-api-server",
     "executionRoleArn": "arn:aws:iam::145026616839:role/service-role/ecsTaskExecutionRole",
     "networkMode": "awsvpc",
-    "revision": 26,
     "volumes": [],
-    "status": "ACTIVE",
-    "requiresAttributes": [
-        {
-            "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
-        },
-        {
-            "name": "ecs.capability.execution-role-awslogs"
-        },
-        {
-            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
-        },
-        {
-            "name": "ecs.capability.secrets.asm.environment-variables"
-        },
-        {
-            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.21"
-        },
-        {
-            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
-        },
-        {
-            "name": "ecs.capability.task-eni"
-        }
-    ],
     "placementConstraints": [],
-    "compatibilities": [
-        "EC2",
-        "MANAGED_INSTANCES",
-        "FARGATE"
-    ],
     "requiresCompatibilities": [
         "FARGATE"
     ],
@@ -135,7 +104,5 @@
     "runtimePlatform": {
         "cpuArchitecture": "X86_64",
         "operatingSystemFamily": "LINUX"
-    },
-    "registeredAt": "2026-03-29T11:19:28.553Z",
-    "tags": []
+    }
 }

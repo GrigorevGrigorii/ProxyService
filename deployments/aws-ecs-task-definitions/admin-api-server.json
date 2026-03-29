@@ -1,9 +1,9 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:ap-southeast-1:145026616839:task-definition/ProxyService-admin-api-server:1",
+    "family": "ProxyService-admin-api-server",
     "containerDefinitions": [
         {
             "name": "Main",
-            "image": "docker.io/grigorevgrigorii/proxy-service_admin-api-server:1.0.0",
+            "image": "",
             "cpu": 1024,
             "memoryReservation": 2048,
             "portMappings": [
@@ -63,44 +63,14 @@
                     "awslogs-region": "ap-southeast-1",
                     "awslogs-stream-prefix": "ecs"
                 }
-            }
+            },
+            "systemControls": []
         }
     ],
-    "family": "ProxyService-admin-api-server",
     "executionRoleArn": "arn:aws:iam::145026616839:role/service-role/ecsTaskExecutionRole",
     "networkMode": "awsvpc",
-    "revision": 1,
     "volumes": [],
-    "status": "ACTIVE",
-    "requiresAttributes": [
-        {
-            "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
-        },
-        {
-            "name": "ecs.capability.execution-role-awslogs"
-        },
-        {
-            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
-        },
-        {
-            "name": "ecs.capability.secrets.asm.environment-variables"
-        },
-        {
-            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.21"
-        },
-        {
-            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
-        },
-        {
-            "name": "ecs.capability.task-eni"
-        }
-    ],
     "placementConstraints": [],
-    "compatibilities": [
-        "EC2",
-        "FARGATE",
-        "MANAGED_INSTANCES"
-    ],
     "requiresCompatibilities": [
         "FARGATE"
     ],
@@ -109,7 +79,5 @@
     "runtimePlatform": {
         "cpuArchitecture": "X86_64",
         "operatingSystemFamily": "LINUX"
-    },
-    "registeredAt": "2026-03-29T07:08:27.926Z",
-    "tags": []
+    }
 }
