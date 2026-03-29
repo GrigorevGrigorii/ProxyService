@@ -17,10 +17,23 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
-type MigrationEvent struct{}
+const (
+	Up    = "up"
+	Down  = "down"
+	Steps = "steps"
+)
+
+type MigrationEvent struct {
+	Command string `json:"command"` // "up" | "down" | "steps", default: "up"
+	Steps   int    `json:"steps"`   // only for "steps" command
+}
 
 type MigrationResponse struct {
 	Message string `json:"message"`
+}
+
+func main() {
+	lambda.Start(handler)
 }
 
 func handler(ctx context.Context, event MigrationEvent) (MigrationResponse, error) {
@@ -29,13 +42,9 @@ func handler(ctx context.Context, event MigrationEvent) (MigrationResponse, erro
 		return MigrationResponse{}, err
 	}
 
-	var pgPassword = cfg.PGConfig.Password
-	if cfg.AWSRegion != "" && cfg.PGPasswordAWSSecretName != "" {
-		fmt.Println("Try to load password from AWS Secret Manager")
-		pgPassword, err = loadPGPasswordFromAWS(ctx, cfg)
-		if err != nil {
-			return MigrationResponse{}, err
-		}
+	pgPassword, err := loadPGPassword(ctx, cfg)
+	if err != nil {
+		return MigrationResponse{}, err
 	}
 
 	query := url.Values{}
@@ -54,6 +63,7 @@ func handler(ctx context.Context, event MigrationEvent) (MigrationResponse, erro
 	if err != nil {
 		return MigrationResponse{}, err
 	}
+	defer m.Close()
 
 	fmt.Printf(
 		"Start migration for DB with user=%s, host=%s, port=%d, database=%s, sslmode=%s, sslrootcert=%s\n",
@@ -64,8 +74,7 @@ func handler(ctx context.Context, event MigrationEvent) (MigrationResponse, erro
 		cfg.PGConfig.SSLMode,
 		cfg.PGConfig.SSLRootCert,
 	)
-
-	err = m.Up()
+	err = runMigration(m, event)
 	if err != nil && err.Error() != "no change" {
 		return MigrationResponse{}, err
 	}
@@ -73,7 +82,12 @@ func handler(ctx context.Context, event MigrationEvent) (MigrationResponse, erro
 	return MigrationResponse{Message: "Migration completed successfully"}, nil
 }
 
-func loadPGPasswordFromAWS(ctx context.Context, cfg *config.MigrationConfig) (string, error) {
+func loadPGPassword(ctx context.Context, cfg *config.MigrationConfig) (string, error) {
+	if cfg.AWSRegion == "" || cfg.PGPasswordAWSSecretName == "" {
+		return cfg.PGConfig.Password, nil
+	}
+
+	fmt.Println("Load password from AWS Secret Manager")
 	AWScfg, err := aws_config.LoadDefaultConfig(ctx, aws_config.WithRegion(cfg.AWSRegion))
 	if err != nil {
 		return "", err
@@ -103,6 +117,15 @@ func loadPGPasswordFromAWS(ctx context.Context, cfg *config.MigrationConfig) (st
 	return password, nil
 }
 
-func main() {
-	lambda.Start(handler)
+func runMigration(m *migrate.Migrate, event MigrationEvent) error {
+	switch event.Command {
+	case "", Up:
+		return m.Up()
+	case Down:
+		return m.Down()
+	case Steps:
+		return m.Steps(event.Steps)
+	default:
+		return fmt.Errorf("Unknown command %s", event.Command)
+	}
 }
