@@ -1,4 +1,4 @@
-.PHONY: test butify start-proxy start-mock start-containers start-containers-with-build stop-containers migrate
+.PHONY: test butify start-proxy start-mock start-containers start-containers-with-build stop-containers migrate-local
 
 butify:
 	go fmt ./internal ./cmd ./scripts
