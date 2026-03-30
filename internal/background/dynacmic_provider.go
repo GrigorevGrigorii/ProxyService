@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"proxy-service/internal/database"
 	"proxy-service/internal/models"
+	"time"
 
 	"github.com/hibiken/asynq"
 	"github.com/rs/zerolog/log"
@@ -33,12 +34,18 @@ func (p *DynamicProvider) GetConfigs() ([]*asynq.PeriodicTaskConfig, error) {
 				return nil, err
 			}
 
+			cacheIntervalDuration, err := time.ParseDuration(*target.CacheInterval)
+			if err != nil {
+				return nil, err
+			}
+
 			task := asynq.NewTask("cache_task", payload)
 			tasks = append(
 				tasks,
 				&asynq.PeriodicTaskConfig{
 					Cronspec: "@every " + *target.CacheInterval,
 					Task:     task,
+					Opts:     []asynq.Option{asynq.Unique(cacheIntervalDuration)},
 				},
 			)
 			log.Info().Msgf("Added task for service %s (path=%s, query=%s)", service.Name, target.Path, target.Query)
