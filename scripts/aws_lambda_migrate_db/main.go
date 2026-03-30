@@ -42,7 +42,7 @@ func handler(ctx context.Context, event MigrationEvent) (MigrationResponse, erro
 		return MigrationResponse{}, err
 	}
 
-	pgPassword, err := loadPGPassword(ctx, cfg)
+	user, err := loadUser(ctx, cfg)
 	if err != nil {
 		return MigrationResponse{}, err
 	}
@@ -54,7 +54,7 @@ func handler(ctx context.Context, event MigrationEvent) (MigrationResponse, erro
 	}
 	pgDsn := url.URL{
 		Scheme:   "postgresql",
-		User:     url.UserPassword(cfg.PGConfig.Username, pgPassword),
+		User:     user,
 		Host:     fmt.Sprintf("%s:%d", cfg.PGConfig.Host, cfg.PGConfig.Port),
 		Path:     cfg.PGConfig.Database,
 		RawQuery: query.Encode(),
@@ -82,15 +82,15 @@ func handler(ctx context.Context, event MigrationEvent) (MigrationResponse, erro
 	return MigrationResponse{Message: "Migration completed successfully"}, nil
 }
 
-func loadPGPassword(ctx context.Context, cfg *config.MigrationConfig) (string, error) {
+func loadUser(ctx context.Context, cfg *config.MigrationConfig) (*url.Userinfo, error) {
 	if cfg.AWSRegion == "" || cfg.PGPasswordAWSSecretName == "" {
-		return cfg.PGConfig.Password, nil
+		return url.UserPassword(cfg.PGConfig.Username, cfg.PGConfig.Password), nil
 	}
 
-	fmt.Println("Load password from AWS Secret Manager")
+	fmt.Println("Load username and password from AWS Secret Manager")
 	AWScfg, err := aws_config.LoadDefaultConfig(ctx, aws_config.WithRegion(cfg.AWSRegion))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	svc := secretsmanager.NewFromConfig(AWScfg)
 	input := &secretsmanager.GetSecretValueInput{
@@ -99,22 +99,27 @@ func loadPGPassword(ctx context.Context, cfg *config.MigrationConfig) (string, e
 	}
 	result, err := svc.GetSecretValue(ctx, input)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	var secretString string = *result.SecretString
 
 	parsedSecret := make(map[string]string, 2)
 	err = json.Unmarshal([]byte(secretString), &parsedSecret)
 	if err != nil {
-		return "", err
+		return nil, err
+	}
+
+	username, ok := parsedSecret["username"]
+	if !ok {
+		return nil, errors.New("Secret does not cantain 'username' field")
 	}
 
 	password, ok := parsedSecret["password"]
 	if !ok {
-		return "", errors.New("Secret does not cantain 'password' field")
+		return nil, errors.New("Secret does not cantain 'password' field")
 	}
 
-	return password, nil
+	return url.UserPassword(username, password), nil
 }
 
 func runMigration(m *migrate.Migrate, event MigrationEvent) error {
