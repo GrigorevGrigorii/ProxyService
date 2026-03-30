@@ -89,7 +89,7 @@ func (r *DBRepository) Create(ctx context.Context, service *Service) error {
 
 func (r *DBRepository) Update(ctx context.Context, service *Service) error {
 	return r.DB.Transaction(func(tx *gorm.DB) error {
-		tmpService, err := gorm.G[Service](tx).Where("name = ?", service.Name).First(ctx)
+		tmpService, err := gorm.G[Service](tx).Raw("SELECT * FROM \"services\" WHERE name = ? FOR UPDATE", service.Name).First(ctx)
 		if err != nil {
 			return err
 		}

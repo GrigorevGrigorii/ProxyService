@@ -161,8 +161,8 @@ func TestDBRepositoryUpdateVersionMismatch(t *testing.T) {
 	repo, mock := setupRepositoryTest(t)
 
 	mock.ExpectBegin()
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "services" WHERE name = $1 ORDER BY "services"."name" LIMIT $2`)).
-		WithArgs("mock", 1).
+	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "services" WHERE name = $1 FOR UPDATE`)).
+		WithArgs("mock").
 		WillReturnRows(sqlmock.NewRows([]string{
 			"name", "scheme", "host", "timeout", "retry_count", "retry_interval", "version",
 		}).AddRow("mock", "http", "localhost:8081", 10.0, 2, 0.5, 3))
