@@ -37,10 +37,6 @@
                     "value": "proxy_service"
                 },
                 {
-                    "name": "PG_USER",
-                    "value": "proxy_admin"
-                },
-                {
                     "name": "PG_PORT",
                     "value": "5432"
                 },
@@ -79,6 +75,10 @@
                 {
                     "name": "PG_PASSWORD",
                     "valueFrom": "arn:aws:secretsmanager:ap-southeast-1:145026616839:secret:rds!db-06f97201-5282-40a7-86be-0e9f6f20f995-wdQyHT:password::"
+                },
+                {
+                    "name": "PG_USER",
+                    "valueFrom": "arn:aws:secretsmanager:ap-southeast-1:145026616839:secret:rds!db-06f97201-5282-40a7-86be-0e9f6f20f995-wdQyHT:username::"
                 }
             ],
             "logConfiguration": {
