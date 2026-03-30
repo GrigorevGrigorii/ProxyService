@@ -88,6 +88,10 @@ func (s *stubDBRepository) GetFiltered(ctx context.Context, name, path, method, 
 	return s.getFilteredFn(ctx, name, path, method, query)
 }
 
+func (s *stubDBRepository) GetForCaching(ctx context.Context) ([]database.Service, error) {
+	return nil, errors.New("unexpected GetForCaching call")
+}
+
 func (s *stubDBRepository) Create(ctx context.Context, service *database.Service) error {
 	return errors.New("unexpected Create call")
 }

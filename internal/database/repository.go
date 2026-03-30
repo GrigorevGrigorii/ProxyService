@@ -28,75 +28,55 @@ type DBRepository struct {
 }
 
 func (r *DBRepository) GetAll(ctx context.Context) ([]Service, error) {
-	var result []Service
+	services, err := gorm.G[Service](r.DB).Preload("Targets", nil).Find(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-	err := r.DB.Transaction(func(tx *gorm.DB) error {
-		services, err := gorm.G[Service](tx).Preload("Targets", nil).Find(ctx)
-		if err != nil {
-			return err
-		}
-		result = services
-		return nil
-	})
-
-	return result, err
+	return services, nil
 }
 
 func (r *DBRepository) Get(ctx context.Context, name string) (*Service, error) {
-	var result *Service
+	service, err := gorm.G[Service](r.DB).Preload("Targets", nil).Where("name = ?", name).First(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-	err := r.DB.Transaction(func(tx *gorm.DB) error {
-		service, err := gorm.G[Service](tx).Preload("Targets", nil).Where("name = ?", name).First(ctx)
-		if err != nil {
-			return err
-		}
-		result = &service
-		return nil
-	})
-
-	return result, err
+	return &service, err
 }
 
 func (r *DBRepository) GetFiltered(ctx context.Context, name, path, method, query string) (*Service, error) {
-	var result *Service
-
-	err := r.DB.Transaction(func(tx *gorm.DB) error {
-		service, err := gorm.G[Service](tx).Preload("Targets", func(db gorm.PreloadBuilder) error {
-			db.Where("path = ? AND method = ? AND query = ?", path, method, query)
-			return nil
-		}).Where("name = ?", name).First(ctx)
-		if err != nil {
-			return err
-		}
-		if len(service.Targets) == 0 {
-			return gorm.ErrRecordNotFound
-		}
-
-		result = &service
+	targetsFilter := func(db gorm.PreloadBuilder) error {
+		db.Where("path = ? AND method = ? AND query = ?", path, method, query)
 		return nil
-	})
+	}
+	service, err := gorm.G[Service](r.DB).Preload("Targets", targetsFilter).Where("name = ?", name).First(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if len(service.Targets) == 0 {
+		return nil, gorm.ErrRecordNotFound
+	}
 
-	return result, err
+	return &service, err
 }
 
 func (r *DBRepository) GetForCaching(ctx context.Context) ([]Service, error) {
 	var result []Service
 
-	err := r.DB.Transaction(func(tx *gorm.DB) error {
-		services, err := gorm.G[Service](tx).Preload("Targets", func(db gorm.PreloadBuilder) error {
-			db.Where("cache_interval IS NOT NULL")
-			return nil
-		}).Find(ctx)
-		if err != nil {
-			return err
-		}
-		for _, service := range services {
-			if len(service.Targets) != 0 {
-				result = append(result, service)
-			}
-		}
+	targetsFilter := func(db gorm.PreloadBuilder) error {
+		db.Where("cache_interval IS NOT NULL")
 		return nil
-	})
+	}
+	services, err := gorm.G[Service](r.DB).Preload("Targets", targetsFilter).Find(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for _, service := range services {
+		if len(service.Targets) != 0 {
+			result = append(result, service)
+		}
+	}
 
 	return result, err
 }

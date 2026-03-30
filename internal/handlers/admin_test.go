@@ -41,6 +41,10 @@ func (s *stubAdminRepository) GetFiltered(ctx context.Context, name, path, metho
 	return nil, errors.New("unexpected GetFiltered call")
 }
 
+func (s *stubAdminRepository) GetForCaching(ctx context.Context) ([]database.Service, error) {
+	return nil, errors.New("unexpected GetForCaching call")
+}
+
 func (s *stubAdminRepository) Create(ctx context.Context, service *database.Service) error {
 	if s.createFn == nil {
 		return errors.New("unexpected Create call")

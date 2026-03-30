@@ -32,7 +32,6 @@ func setupRepositoryTest(t *testing.T) (*DBRepository, sqlmock.Sqlmock) {
 func TestDBRepositoryGetAll(t *testing.T) {
 	repo, mock := setupRepositoryTest(t)
 
-	mock.ExpectBegin()
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "services"`)).
 		WillReturnRows(sqlmock.NewRows([]string{
 			"name", "scheme", "host", "timeout", "retry_count", "retry_interval", "version",
@@ -40,7 +39,6 @@ func TestDBRepositoryGetAll(t *testing.T) {
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "targets" WHERE "targets"."service_name" = $1`)).
 		WithArgs("mock").
 		WillReturnRows(sqlmock.NewRows([]string{"service_name", "path", "method"}).AddRow("mock", "/mock", "GET"))
-	mock.ExpectCommit()
 
 	services, err := repo.GetAll(context.Background())
 	if err != nil {
@@ -63,11 +61,9 @@ func TestDBRepositoryGetAll(t *testing.T) {
 func TestDBRepositoryGetNotFound(t *testing.T) {
 	repo, mock := setupRepositoryTest(t)
 
-	mock.ExpectBegin()
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "services" WHERE name = $1 ORDER BY "services"."name" LIMIT $2`)).
 		WithArgs("missing", 1).
 		WillReturnError(gorm.ErrRecordNotFound)
-	mock.ExpectRollback()
 
 	service, err := repo.Get(context.Background(), "missing")
 	if service != nil {
@@ -84,7 +80,6 @@ func TestDBRepositoryGetNotFound(t *testing.T) {
 func TestDBRepositoryGetFiltered(t *testing.T) {
 	repo, mock := setupRepositoryTest(t)
 
-	mock.ExpectBegin()
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "services" WHERE name = $1 ORDER BY "services"."name" LIMIT $2`)).
 		WithArgs("mock", 1).
 		WillReturnRows(sqlmock.NewRows([]string{
@@ -93,7 +88,6 @@ func TestDBRepositoryGetFiltered(t *testing.T) {
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "targets" WHERE "targets"."service_name" = $1 AND (path = $2 AND method = $3 AND query = $4)`)).
 		WithArgs("mock", "/mock", "GET", "query=param").
 		WillReturnRows(sqlmock.NewRows([]string{"service_name", "path", "method", "query"}).AddRow("mock", "/mock", "GET", "query=param"))
-	mock.ExpectCommit()
 
 	service, err := repo.GetFiltered(context.Background(), "mock", "/mock", "GET", "query=param")
 	if err != nil {
@@ -104,6 +98,34 @@ func TestDBRepositoryGetFiltered(t *testing.T) {
 	}
 	if len(service.Targets) != 1 {
 		t.Fatalf("expected 1 target, got %d", len(service.Targets))
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("unmet sql expectations: %v", err)
+	}
+}
+
+func TestDBRepositoryGetForCaching(t *testing.T) {
+	repo, mock := setupRepositoryTest(t)
+
+	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "services"`)).
+		WillReturnRows(sqlmock.NewRows([]string{
+			"name", "scheme", "host", "timeout", "retry_count", "retry_interval", "version",
+		}).AddRow("mock", "http", "localhost:8080", 1.5, 0, 0, 1))
+	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "targets" WHERE "targets"."service_name" = $1 AND cache_interval IS NOT NULL`)).
+		WillReturnRows(sqlmock.NewRows([]string{"service_name", "path", "method", "query", "cache_interval"}).AddRow("mock", "/mock", "GET", "query=param", "1m"))
+
+	services, err := repo.GetForCaching(context.Background())
+	if err != nil {
+		t.Fatalf("GetFiltered returned error: %v", err)
+	}
+	if len(services) != 1 {
+		t.Fatalf("expected len(services) to be 1")
+	}
+	if services[0].Name != "mock" {
+		t.Fatalf("expected service name mock, got %s", services[0].Name)
+	}
+	if len(services[0].Targets) != 1 {
+		t.Fatalf("expected 1 target, got %d", len(services[0].Targets))
 	}
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Fatalf("unmet sql expectations: %v", err)
