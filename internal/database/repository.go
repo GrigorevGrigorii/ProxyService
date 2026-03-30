@@ -17,6 +17,7 @@ type Repository interface {
 	GetAll(ctx context.Context) ([]Service, error)
 	Get(ctx context.Context, name string) (*Service, error)
 	GetFiltered(ctx context.Context, name, path, method, query string) (*Service, error)
+	GetForCaching(ctx context.Context) ([]Service, error)
 	Create(ctx context.Context, service *Service) error
 	Update(ctx context.Context, service *Service) error
 	Delete(ctx context.Context, name string) error
