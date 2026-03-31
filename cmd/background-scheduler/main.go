@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"crypto/tls"
 	"os"
 	"proxy-service/internal/background"
@@ -65,9 +66,6 @@ func main() {
 		log.Fatal().Msg(err.Error())
 	}
 
-	if err := mgr.Start(); err != nil {
-		log.Fatal().Msg(err.Error())
-	}
-
-	select {}
+	leaderElection := background.NewLeaderElection(&rdb, mgr)
+	leaderElection.RunWithElection(context.Background())
 }
