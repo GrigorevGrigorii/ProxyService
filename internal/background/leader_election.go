@@ -2,6 +2,7 @@ package background
 
 import (
 	"context"
+	"sync/atomic"
 	"time"
 
 	"github.com/google/uuid"
@@ -20,34 +21,43 @@ type LeaderElection struct {
 	lockTTL          time.Duration
 	renewalInterval  time.Duration
 	electionInterval time.Duration
-	manager          *asynq.PeriodicTaskManager
+	managerOpts      asynq.PeriodicTaskManagerOpts
+	isLeader         atomic.Bool
 }
 
-func NewLeaderElection(redisClient *redis.UniversalClient, manager *asynq.PeriodicTaskManager) *LeaderElection {
+func NewLeaderElection(redisClient *redis.UniversalClient, opts asynq.PeriodicTaskManagerOpts) *LeaderElection {
 	return &LeaderElection{
 		redisClient:      redisClient,
 		nodeID:           uuid.New().String(),
 		lockTTL:          10 * time.Second,
 		renewalInterval:  3 * time.Second,
 		electionInterval: 5 * time.Second,
-		manager:          manager,
+		managerOpts:      opts,
 	}
 }
 
 func (le *LeaderElection) RunWithElection(ctx context.Context) {
+	le.tryBecomeLeader(ctx)
+
+	electionTicker := time.NewTicker(le.electionInterval)
+	defer electionTicker.Stop()
+
 	for {
 		select {
 		case <-ctx.Done():
 			log.Info().Msg("Context cancelled, stopping leader election")
 			return
-		default:
+		case <-electionTicker.C:
 			le.tryBecomeLeader(ctx)
-			time.Sleep(le.electionInterval)
 		}
 	}
 }
 
 func (le *LeaderElection) tryBecomeLeader(ctx context.Context) {
+	if le.isLeader.Load() {
+		return
+	}
+
 	// Try to acquire leadership
 	acquired, err := (*le.redisClient).SetNX(ctx, leaderLockKey, le.nodeID, le.lockTTL).Result()
 	if err != nil {
@@ -57,20 +67,29 @@ func (le *LeaderElection) tryBecomeLeader(ctx context.Context) {
 
 	if acquired {
 		log.Info().Str("nodeID", le.nodeID).Msg("Acquired leadership, starting scheduler")
-		le.runAsLeader(ctx)
-	} else {
-		log.Info().Str("nodeID", le.nodeID).Msg("Not acquired leadership, skip starting scheduler")
+
+		manager, err := asynq.NewPeriodicTaskManager(le.managerOpts)
+		if err != nil {
+			log.Error().Err(err).Msg("Failed to create periodic task manager")
+			// Release the lock since we can't start the manager
+			(*le.redisClient).Del(ctx, leaderLockKey)
+			return
+		}
+		le.runAsLeader(ctx, manager)
 	}
 }
 
-func (le *LeaderElection) runAsLeader(ctx context.Context) {
-	// Start the periodic task manager
-	if err := le.manager.Start(); err != nil {
+func (le *LeaderElection) runAsLeader(ctx context.Context, manager *asynq.PeriodicTaskManager) {
+	le.isLeader.Store(true)
+	defer le.isLeader.Store(false)
+
+	// Start the manager
+	if err := manager.Start(); err != nil {
 		log.Error().Err(err).Msg("Failed to start periodic task manager")
 		return
 	}
 	defer func() {
-		le.manager.Shutdown()
+		manager.Shutdown()
 		log.Info().Msg("Stopped periodic task manager")
 	}()
 

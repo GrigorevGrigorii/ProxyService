@@ -55,20 +55,13 @@ func main() {
 
 	// Asinq
 	provider := &background.DynamicProvider{DBRepository: dbRepository}
-	mgr, err := asynq.NewPeriodicTaskManager(
-		asynq.PeriodicTaskManagerOpts{
-			RedisUniversalClient:       rdb,
-			PeriodicTaskConfigProvider: provider,
-			SyncInterval:               30 * time.Second,
-			SchedulerOpts: &asynq.SchedulerOpts{
-				Location: time.UTC,
-			},
+	leaderElection := background.NewLeaderElection(&rdb, asynq.PeriodicTaskManagerOpts{
+		RedisUniversalClient:       rdb,
+		PeriodicTaskConfigProvider: provider,
+		SyncInterval:               30 * time.Second,
+		SchedulerOpts: &asynq.SchedulerOpts{
+			Location: time.UTC,
 		},
-	)
-	if err != nil {
-		log.Fatal().Msg(err.Error())
-	}
-
-	leaderElection := background.NewLeaderElection(&rdb, mgr)
+	})
 	leaderElection.RunWithElection(context.Background())
 }
