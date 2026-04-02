@@ -86,7 +86,7 @@ func main() {
 		CacheRepository: &cache.CacheRepository{Redis: &rdb},
 	}
 
-	router.GET("/ping", handlers.Ping)
+	router.GET("/api/proxy/ping", handlers.Ping)
 
 	router.GET("/api/proxy/v1/:service/*path", proxyHandlers.ProxyGetRequest)
 	router.POST("/api/proxy/v1/:service/*path", proxyHandlers.ProxyPostRequest)

@@ -65,7 +65,7 @@ func main() {
 		DBRepository: &database.DBRepository{DB: db},
 	}
 
-	router.GET("/ping", handlers.Ping)
+	router.GET("/api/admin/ping", handlers.Ping)
 
 	router.GET("/api/admin/v1/service", adminHandlers.GetServices)
 	router.GET("/api/admin/v1/service/:name", adminHandlers.GetService)

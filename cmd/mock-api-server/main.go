@@ -60,7 +60,7 @@ func main() {
 		cfg: cfg,
 	}
 
-	router.GET("/ping", handlers.Ping)
+	router.GET("/mock/ping", handlers.Ping)
 
 	router.GET("/mock", mockHandlers.mockHandler)
 	router.POST("/mock", mockHandlers.mockHandler)
