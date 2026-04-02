@@ -1,17 +1,22 @@
 package middlewares
 
 import (
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 )
 
-func ZerologMiddleware() gin.HandlerFunc {
+func ZerologMiddleware(logPings bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 
 		c.Next()
+
+		if !logPings && strings.HasSuffix(c.Request.URL.Path, "/ping") {
+			return
+		}
 
 		log.Info().
 			Str("method", c.Request.Method).

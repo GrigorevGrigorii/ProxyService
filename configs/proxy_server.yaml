@@ -1,5 +1,6 @@
 port: 8080
 swagger_host: localhost:8080
+log_pings: false
 pg:
   user: proxy_service_user
   password: proxy_service_password

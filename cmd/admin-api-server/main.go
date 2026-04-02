@@ -54,7 +54,7 @@ func main() {
 		AllowMethods:    []string{"GET", "POST", "PUT", "DELETE"},
 	}))
 	router.Use(middlewares.RequestIDMiddleware())
-	router.Use(middlewares.ZerologMiddleware())
+	router.Use(middlewares.ZerologMiddleware(cfg.LogPings))
 
 	// Swagger
 	docs.SwaggerInfo.Host = cfg.SwaggerHost
