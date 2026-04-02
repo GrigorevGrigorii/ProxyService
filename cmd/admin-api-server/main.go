@@ -20,7 +20,7 @@ import (
 // @title			Proxy Service Admin API
 // @version		1.0
 // @description	API for managing info about allowed services and targets to proxy
-// @BasePath		/api/admin/v1
+// @BasePath		/api/admin
 func main() {
 	// Logging
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix

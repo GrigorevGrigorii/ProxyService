@@ -15,7 +15,26 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/{service}/{path}": {
+        "/ping": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Common API"
+                ],
+                "summary": "Ping",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.StatusResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/{service}/{path}": {
             "get": {
                 "description": "Proxy GET request to service with all provided query params",
                 "tags": [
@@ -113,6 +132,16 @@ const docTemplate = `{
                 "responses": {}
             }
         }
+    },
+    "definitions": {
+        "internal_handlers.StatusResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string"
+                }
+            }
+        }
     }
 }`
 
@@ -120,7 +149,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "",
-	BasePath:         "/api/proxy/v1",
+	BasePath:         "/api/proxy",
 	Schemes:          []string{},
 	Title:            "Proxy Service Proxy API",
 	Description:      "API for proxying requests",

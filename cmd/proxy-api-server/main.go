@@ -24,7 +24,7 @@ import (
 // @title			Proxy Service Proxy API
 // @version		1.0
 // @description	API for proxying requests
-// @BasePath		/api/proxy/v1
+// @BasePath		/api/proxy
 func main() {
 	// Logging
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix

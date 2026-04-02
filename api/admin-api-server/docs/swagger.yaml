@@ -1,5 +1,15 @@
-basePath: /api/admin/v1
+basePath: /api/admin
 definitions:
+  internal_handlers.ErrorResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  internal_handlers.StatusResponse:
+    properties:
+      status:
+        type: string
+    type: object
   proxy-service_internal_models.ServiceDTO:
     properties:
       host:
@@ -38,7 +48,19 @@ info:
   title: Proxy Service Admin API
   version: "1.0"
 paths:
-  /service:
+  /ping:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/internal_handlers.StatusResponse'
+      summary: Ping
+      tags:
+      - Common API
+  /v1/service:
     get:
       produces:
       - application/json
@@ -68,25 +90,19 @@ paths:
         "200":
           description: Success
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.StatusResponse'
         "400":
           description: Bad request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "409":
           description: Service already exists
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       summary: Create service
       tags:
       - Admin API
-  /service/{name}:
+  /v1/service/{name}:
     delete:
       parameters:
       - description: Service name
@@ -100,9 +116,7 @@ paths:
         "200":
           description: Success
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.StatusResponse'
       summary: Delete service
       tags:
       - Admin API
@@ -123,9 +137,7 @@ paths:
         "404":
           description: Service not found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       summary: Get service with targets by name
       tags:
       - Admin API
@@ -150,21 +162,15 @@ paths:
         "200":
           description: Success
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.StatusResponse'
         "400":
           description: Bad request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "404":
           description: Service not found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       summary: Update service
       tags:
       - Admin API

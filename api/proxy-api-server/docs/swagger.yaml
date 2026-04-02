@@ -1,11 +1,29 @@
-basePath: /api/proxy/v1
+basePath: /api/proxy
+definitions:
+  internal_handlers.StatusResponse:
+    properties:
+      status:
+        type: string
+    type: object
 info:
   contact: {}
   description: API for proxying requests
   title: Proxy Service Proxy API
   version: "1.0"
 paths:
-  /{service}/{path}:
+  /ping:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/internal_handlers.StatusResponse'
+      summary: Ping
+      tags:
+      - Common API
+  /v1/{service}/{path}:
     delete:
       description: Proxy DELETE request to service
       parameters:

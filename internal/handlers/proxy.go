@@ -28,15 +28,15 @@ type ProxyHandlers struct {
 //	@Description	Proxy GET request to service with all provided query params
 //	@Param			service	path	string	true	"Service name"
 //	@Param			path	path	string	true	"Path of target to proxy"
-//	@Router			/{service}/{path} [get]
+//	@Router			/v1/{service}/{path} [get]
 func (h *ProxyHandlers) ProxyGetRequest(c *gin.Context) {
 	service, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"), c.Request.URL.Query().Encode())
 	if errors.Is(err, database.ErrNotFound) {
-		c.IndentedJSON(http.StatusForbidden, gin.H{"message": "service, path or query params are not allowed"})
+		c.IndentedJSON(http.StatusForbidden, ErrorResponse{Message: "service, path or query params are not allowed"})
 		return
 	}
 	if err != nil {
-		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		c.IndentedJSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
 		return
 	}
 	target := service.Targets[0]
@@ -69,7 +69,7 @@ func (h *ProxyHandlers) ProxyGetRequest(c *gin.Context) {
 		time.Duration(service.RetryInterval*float32(time.Second)),
 	)
 	if err != nil {
-		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.IndentedJSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
 		return
 	}
 
@@ -85,18 +85,18 @@ func (h *ProxyHandlers) ProxyGetRequest(c *gin.Context) {
 //	@Description	Proxy POST request to service
 //	@Param			service	path	string	true	"Service name"
 //	@Param			path	path	string	true	"Path of target to proxy"
-//	@Router			/{service}/{path} [post]
+//	@Router			/v1/{service}/{path} [post]
 func (h *ProxyHandlers) ProxyPostRequest(c *gin.Context) {
 	_, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"), "")
 	if errors.Is(err, database.ErrNotFound) {
-		c.IndentedJSON(http.StatusForbidden, gin.H{"message": "service, path or query params are not allowed"})
+		c.IndentedJSON(http.StatusForbidden, ErrorResponse{Message: "service, path or query params are not allowed"})
 		return
 	}
 	if err != nil {
-		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		c.IndentedJSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
 		return
 	}
-	c.IndentedJSON(http.StatusNotImplemented, gin.H{"message": "not_implemented_error"})
+	c.IndentedJSON(http.StatusNotImplemented, ErrorResponse{Message: "not_implemented_error"})
 }
 
 // ProxyPutRequest godoc
@@ -106,18 +106,18 @@ func (h *ProxyHandlers) ProxyPostRequest(c *gin.Context) {
 //	@Description	Proxy PUT request to service
 //	@Param			service	path	string	true	"Service name"
 //	@Param			path	path	string	true	"Path of target to proxy"
-//	@Router			/{service}/{path} [put]
+//	@Router			/v1/{service}/{path} [put]
 func (h *ProxyHandlers) ProxyPutRequest(c *gin.Context) {
 	_, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"), "")
 	if errors.Is(err, database.ErrNotFound) {
-		c.IndentedJSON(http.StatusForbidden, gin.H{"message": "service, path or query params are not allowed"})
+		c.IndentedJSON(http.StatusForbidden, ErrorResponse{Message: "service, path or query params are not allowed"})
 		return
 	}
 	if err != nil {
-		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		c.IndentedJSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
 		return
 	}
-	c.IndentedJSON(http.StatusNotImplemented, gin.H{"message": "not_implemented_error"})
+	c.IndentedJSON(http.StatusNotImplemented, ErrorResponse{Message: "not_implemented_error"})
 }
 
 // ProxyDeleteRequest godoc
@@ -127,18 +127,18 @@ func (h *ProxyHandlers) ProxyPutRequest(c *gin.Context) {
 //	@Description	Proxy DELETE request to service
 //	@Param			service	path	string	true	"Service name"
 //	@Param			path	path	string	true	"Path of target to proxy"
-//	@Router			/{service}/{path} [delete]
+//	@Router			/v1/{service}/{path} [delete]
 func (h *ProxyHandlers) ProxyDeleteRequest(c *gin.Context) {
 	_, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"), "")
 	if errors.Is(err, database.ErrNotFound) {
-		c.IndentedJSON(http.StatusForbidden, gin.H{"message": "service, path or query params are not allowed"})
+		c.IndentedJSON(http.StatusForbidden, ErrorResponse{Message: "service, path or query params are not allowed"})
 		return
 	}
 	if err != nil {
-		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		c.IndentedJSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
 		return
 	}
-	c.IndentedJSON(http.StatusNotImplemented, gin.H{"message": "not_implemented_error"})
+	c.IndentedJSON(http.StatusNotImplemented, ErrorResponse{Message: "not_implemented_error"})
 }
 
 func (h *ProxyHandlers) getAllowedService(ctx context.Context, service, method, path, query string) (*database.Service, error) {
