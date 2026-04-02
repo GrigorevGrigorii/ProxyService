@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"os"
+	"proxy-service/api/proxy-api-server/docs"
 	"proxy-service/internal/cache"
 	"proxy-service/internal/config"
 	"proxy-service/internal/database"
@@ -16,8 +17,14 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+// @title			Proxy Service Proxy API
+// @version		1.0
+// @description	API for proxying requests
+// @BasePath		/api/proxy/v1
 func main() {
 	// Logging
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
@@ -67,6 +74,10 @@ func main() {
 	}))
 	router.Use(middlewares.RequestIDMiddleware())
 	router.Use(middlewares.ZerologMiddleware())
+
+	// Swagger
+	docs.SwaggerInfo.Host = cfg.SwaggerHost
+	router.GET("/api/proxy/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Handlers
 	proxyHandlers := handlers.ProxyHandlers{

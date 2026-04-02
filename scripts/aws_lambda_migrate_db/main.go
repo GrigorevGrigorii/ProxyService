@@ -10,7 +10,7 @@ import (
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/aws"
-	aws_config "github.com/aws/aws-sdk-go-v2/config"
+	awsConfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -88,7 +88,7 @@ func loadUser(ctx context.Context, cfg *config.MigrationConfig) (*url.Userinfo, 
 	}
 
 	fmt.Println("Load username and password from AWS Secret Manager")
-	AWScfg, err := aws_config.LoadDefaultConfig(ctx, aws_config.WithRegion(cfg.AWSRegion))
+	AWScfg, err := awsConfig.LoadDefaultConfig(ctx, awsConfig.WithRegion(cfg.AWSRegion))
 	if err != nil {
 		return nil, err
 	}

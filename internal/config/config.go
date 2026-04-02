@@ -46,6 +46,7 @@ func (cfg RedisConfig) GetMasterName() string {
 
 type ProxyServerConfig struct {
 	Port        int         `mapstructure:"port"`
+	SwaggerHost string      `mapstructure:"swagger_host"`
 	PGConfig    PGConfig    `mapstructure:"pg"`
 	RedisConfig RedisConfig `mapstructure:"redis"`
 }
@@ -56,8 +57,9 @@ type MockServerConfig struct {
 }
 
 type AdminServerConfig struct {
-	Port     int      `mapstructure:"port"`
-	PGConfig PGConfig `mapstructure:"pg"`
+	Port        int      `mapstructure:"port"`
+	SwaggerHost string   `mapstructure:"swagger_host"`
+	PGConfig    PGConfig `mapstructure:"pg"`
 }
 
 type BackgroundWorkerConfig struct {

@@ -1,0 +1,171 @@
+basePath: /api/admin/v1
+definitions:
+  proxy-service_internal_models.ServiceDTO:
+    properties:
+      host:
+        type: string
+      name:
+        type: string
+      retry_count:
+        type: integer
+      retry_interval:
+        type: number
+      scheme:
+        type: string
+      targets:
+        items:
+          $ref: '#/definitions/proxy-service_internal_models.TargetDTO'
+        type: array
+      timeout:
+        type: number
+      version:
+        type: integer
+    type: object
+  proxy-service_internal_models.TargetDTO:
+    properties:
+      cache_interval:
+        type: string
+      method:
+        type: string
+      path:
+        type: string
+      query:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: API for managing info about allowed services and targets to proxy
+  title: Proxy Service Admin API
+  version: "1.0"
+paths:
+  /service:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            items:
+              $ref: '#/definitions/proxy-service_internal_models.ServiceDTO'
+            type: array
+      summary: Get all services with targets
+      tags:
+      - Admin API
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Service data (with targets)
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/proxy-service_internal_models.ServiceDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Service already exists
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create service
+      tags:
+      - Admin API
+  /service/{name}:
+    delete:
+      parameters:
+      - description: Service name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete service
+      tags:
+      - Admin API
+    get:
+      parameters:
+      - description: Service name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/proxy-service_internal_models.ServiceDTO'
+        "404":
+          description: Service not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get service with targets by name
+      tags:
+      - Admin API
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Service name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Service data (with targets)
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/proxy-service_internal_models.ServiceDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Service not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update service
+      tags:
+      - Admin API
+swagger: "2.0"

@@ -21,6 +21,14 @@ type ProxyHandlers struct {
 	CacheRepository cache.Repository
 }
 
+// ProxyGetRequest godoc
+//
+//	@Summary		Proxy GET request
+//	@Tags			Proxy API
+//	@Description	Proxy GET request to service with all provided query params
+//	@Param			service	path	string	true	"Service name"
+//	@Param			path	path	string	true	"Path of target to proxy"
+//	@Router			/{service}/{path} [get]
 func (h *ProxyHandlers) ProxyGetRequest(c *gin.Context) {
 	service, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"), c.Request.URL.Query().Encode())
 	if errors.Is(err, database.ErrNotFound) {
@@ -70,6 +78,14 @@ func (h *ProxyHandlers) ProxyGetRequest(c *gin.Context) {
 	c.DataFromReader(resp.StatusCode, resp.ContentLength, resp.Header.Get("Content-Type"), resp.Body, nil)
 }
 
+// ProxyPostRequest godoc
+//
+//	@Summary		[not_implemented] Proxy POST request
+//	@Tags			Proxy API
+//	@Description	Proxy POST request to service
+//	@Param			service	path	string	true	"Service name"
+//	@Param			path	path	string	true	"Path of target to proxy"
+//	@Router			/{service}/{path} [post]
 func (h *ProxyHandlers) ProxyPostRequest(c *gin.Context) {
 	_, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"), "")
 	if errors.Is(err, database.ErrNotFound) {
@@ -83,6 +99,14 @@ func (h *ProxyHandlers) ProxyPostRequest(c *gin.Context) {
 	c.IndentedJSON(http.StatusNotImplemented, gin.H{"message": "not_implemented_error"})
 }
 
+// ProxyPutRequest godoc
+//
+//	@Summary		[not_implemented] Proxy PUT request
+//	@Tags			Proxy API
+//	@Description	Proxy PUT request to service
+//	@Param			service	path	string	true	"Service name"
+//	@Param			path	path	string	true	"Path of target to proxy"
+//	@Router			/{service}/{path} [put]
 func (h *ProxyHandlers) ProxyPutRequest(c *gin.Context) {
 	_, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"), "")
 	if errors.Is(err, database.ErrNotFound) {
@@ -96,6 +120,14 @@ func (h *ProxyHandlers) ProxyPutRequest(c *gin.Context) {
 	c.IndentedJSON(http.StatusNotImplemented, gin.H{"message": "not_implemented_error"})
 }
 
+// ProxyDeleteRequest godoc
+//
+//	@Summary		[not_implemented] Proxy DELETE request
+//	@Tags			Proxy API
+//	@Description	Proxy DELETE request to service
+//	@Param			service	path	string	true	"Service name"
+//	@Param			path	path	string	true	"Path of target to proxy"
+//	@Router			/{service}/{path} [delete]
 func (h *ProxyHandlers) ProxyDeleteRequest(c *gin.Context) {
 	_, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"), "")
 	if errors.Is(err, database.ErrNotFound) {

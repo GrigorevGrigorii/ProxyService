@@ -16,6 +16,13 @@ type AdminHandlers struct {
 	DBRepository database.Repository
 }
 
+// GetServices godoc
+//
+//	@Summary	Get all services with targets
+//	@Tags		Admin API
+//	@Produce	json
+//	@Success	200	{object}	[]models.ServiceDTO	"Success"
+//	@Router		/service [get]
 func (h *AdminHandlers) GetServices(c *gin.Context) {
 	services, err := h.DBRepository.GetAll(c.Request.Context())
 	if err != nil {
@@ -31,6 +38,15 @@ func (h *AdminHandlers) GetServices(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, response)
 }
 
+// GetService godoc
+//
+//	@Summary	Get service with targets by name
+//	@Tags		Admin API
+//	@Produce	json
+//	@Param		name	path		string				true	"Service name"
+//	@Success	200		{object}	models.ServiceDTO	"Success"
+//	@Failure	404		{object}	map[string]string	"Service not found"
+//	@Router		/service/{name} [get]
 func (h *AdminHandlers) GetService(c *gin.Context) {
 	service, err := h.DBRepository.Get(c.Request.Context(), c.Param("name"))
 	if errors.Is(err, database.ErrNotFound) {
@@ -45,6 +61,17 @@ func (h *AdminHandlers) GetService(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, models.ServiceDTOFromDBModel(*service))
 }
 
+// CreateService godoc
+//
+//	@Summary	Create service
+//	@Tags		Admin API
+//	@Accept		json
+//	@Produce	json
+//	@Param		request	body		models.ServiceDTO	true	"Service data (with targets)"
+//	@Success	200		{object}	map[string]string	"Success"
+//	@Failure	400		{object}	map[string]string	"Bad request"
+//	@Failure	409		{object}	map[string]string	"Service already exists"
+//	@Router		/service [post]
 func (h *AdminHandlers) CreateService(c *gin.Context) {
 	var request models.ServiceDTO
 
@@ -57,6 +84,7 @@ func (h *AdminHandlers) CreateService(c *gin.Context) {
 		return
 	}
 
+	request.Version = 0
 	service := models.ServiceDBModelFromDTO(request)
 	err := h.DBRepository.Create(c.Request.Context(), &service)
 	if errors.Is(err, database.ErrAlreadyExists) {
@@ -71,6 +99,18 @@ func (h *AdminHandlers) CreateService(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, gin.H{"message": "ok"})
 }
 
+// UpdateService godoc
+//
+//	@Summary	Update service
+//	@Tags		Admin API
+//	@Accept		json
+//	@Produce	json
+//	@Param		name	path		string				true	"Service name"
+//	@Param		request	body		models.ServiceDTO	true	"Service data (with targets)"
+//	@Success	200		{object}	map[string]string	"Success"
+//	@Failure	400		{object}	map[string]string	"Bad request"
+//	@Failure	404		{object}	map[string]string	"Service not found"
+//	@Router		/service/{name} [put]
 func (h *AdminHandlers) UpdateService(c *gin.Context) {
 	var request models.ServiceDTO
 
@@ -106,6 +146,14 @@ func (h *AdminHandlers) UpdateService(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, gin.H{"message": "ok"})
 }
 
+// DeleteService godoc
+//
+//	@Summary	Delete service
+//	@Tags		Admin API
+//	@Produce	json
+//	@Param		name	path		string				true	"Service name"
+//	@Success	200		{object}	map[string]string	"Success"
+//	@Router		/service/{name} [delete]
 func (h *AdminHandlers) DeleteService(c *gin.Context) {
 	err := h.DBRepository.Delete(c.Request.Context(), c.Param("name"))
 	if err != nil {

@@ -1,4 +1,4 @@
-.PHONY: test butify start-proxy start-mock start-containers start-containers-with-build stop-containers migrate-local
+.PHONY: test butify start-proxy start-mock start-containers start-containers-with-build stop-containers migrate-local swagger-admin swagger-proxy
 
 butify:
 	go fmt ./internal ./cmd ./scripts
@@ -29,3 +29,9 @@ stop-containers:
 
 migrate-local:
 	migrate -source file:internal/database/migrations -database 'postgresql://proxy_service_user:proxy_service_password@127.0.0.1:5432/proxy_service_db?sslmode=disable' up
+
+swagger-admin:
+	swag init -g ./cmd/admin-api-server/main.go -o ./api/admin-api-server/docs --parseDependency --parseInternal --tags 'Admin API'
+
+swagger-proxy:
+	swag init -g ./cmd/proxy-api-server/main.go -o ./api/proxy-api-server/docs --parseDependency --parseInternal --tags 'Proxy API'

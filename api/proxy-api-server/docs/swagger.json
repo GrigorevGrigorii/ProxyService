@@ -1,0 +1,110 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API for proxying requests",
+        "title": "Proxy Service Proxy API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "basePath": "/api/proxy/v1",
+    "paths": {
+        "/{service}/{path}": {
+            "get": {
+                "description": "Proxy GET request to service with all provided query params",
+                "tags": [
+                    "Proxy API"
+                ],
+                "summary": "Proxy GET request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Service name",
+                        "name": "service",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Path of target to proxy",
+                        "name": "path",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            },
+            "put": {
+                "description": "Proxy PUT request to service",
+                "tags": [
+                    "Proxy API"
+                ],
+                "summary": "[not_implemented] Proxy PUT request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Service name",
+                        "name": "service",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Path of target to proxy",
+                        "name": "path",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            },
+            "post": {
+                "description": "Proxy POST request to service",
+                "tags": [
+                    "Proxy API"
+                ],
+                "summary": "[not_implemented] Proxy POST request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Service name",
+                        "name": "service",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Path of target to proxy",
+                        "name": "path",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            },
+            "delete": {
+                "description": "Proxy DELETE request to service",
+                "tags": [
+                    "Proxy API"
+                ],
+                "summary": "[not_implemented] Proxy DELETE request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Service name",
+                        "name": "service",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Path of target to proxy",
+                        "name": "path",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        }
+    }
+}

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"proxy-service/api/admin-api-server/docs"
 	"proxy-service/internal/config"
 	"proxy-service/internal/database"
 	"proxy-service/internal/handlers"
@@ -12,8 +13,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+// @title			Proxy Service Admin API
+// @version		1.0
+// @description	API for managing info about allowed services and targets to proxy
+// @BasePath		/api/admin/v1
 func main() {
 	// Logging
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
@@ -48,6 +55,10 @@ func main() {
 	}))
 	router.Use(middlewares.RequestIDMiddleware())
 	router.Use(middlewares.ZerologMiddleware())
+
+	// Swagger
+	docs.SwaggerInfo.Host = cfg.SwaggerHost
+	router.GET("/api/admin/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Handlers
 	adminHandlers := handlers.AdminHandlers{

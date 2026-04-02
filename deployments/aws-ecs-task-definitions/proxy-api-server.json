@@ -67,6 +67,10 @@
                 {
                     "name": "PG_SSLMODE",
                     "value": "verify-full"
+                },
+                {
+                    "name": "SWAGGER_HOST",
+                    "value": "https://pr-25428596cae74c9a8cd09e26b8a82d97.ecs.ap-southeast-1.on.aws"
                 }
             ],
             "mountPoints": [],

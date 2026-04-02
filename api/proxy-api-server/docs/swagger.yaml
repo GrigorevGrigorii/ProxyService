@@ -1,0 +1,77 @@
+basePath: /api/proxy/v1
+info:
+  contact: {}
+  description: API for proxying requests
+  title: Proxy Service Proxy API
+  version: "1.0"
+paths:
+  /{service}/{path}:
+    delete:
+      description: Proxy DELETE request to service
+      parameters:
+      - description: Service name
+        in: path
+        name: service
+        required: true
+        type: string
+      - description: Path of target to proxy
+        in: path
+        name: path
+        required: true
+        type: string
+      responses: {}
+      summary: '[not_implemented] Proxy DELETE request'
+      tags:
+      - Proxy API
+    get:
+      description: Proxy GET request to service with all provided query params
+      parameters:
+      - description: Service name
+        in: path
+        name: service
+        required: true
+        type: string
+      - description: Path of target to proxy
+        in: path
+        name: path
+        required: true
+        type: string
+      responses: {}
+      summary: Proxy GET request
+      tags:
+      - Proxy API
+    post:
+      description: Proxy POST request to service
+      parameters:
+      - description: Service name
+        in: path
+        name: service
+        required: true
+        type: string
+      - description: Path of target to proxy
+        in: path
+        name: path
+        required: true
+        type: string
+      responses: {}
+      summary: '[not_implemented] Proxy POST request'
+      tags:
+      - Proxy API
+    put:
+      description: Proxy PUT request to service
+      parameters:
+      - description: Service name
+        in: path
+        name: service
+        required: true
+        type: string
+      - description: Path of target to proxy
+        in: path
+        name: path
+        required: true
+        type: string
+      responses: {}
+      summary: '[not_implemented] Proxy PUT request'
+      tags:
+      - Proxy API
+swagger: "2.0"
