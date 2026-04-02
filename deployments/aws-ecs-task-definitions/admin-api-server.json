@@ -45,7 +45,7 @@
                 },
                 {
                     "name": "SWAGGER_HOST",
-                    "value": "https://ad-bf0b972b95d149aaabca8b72c3c3ddb1.ecs.ap-southeast-1.on.aws"
+                    "value": "ad-bf0b972b95d149aaabca8b72c3c3ddb1.ecs.ap-southeast-1.on.aws"
                 }
             ],
             "mountPoints": [],
