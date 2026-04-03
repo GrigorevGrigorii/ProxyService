@@ -239,8 +239,8 @@ func TestProxyGetRequest_ContextCancelled(t *testing.T) {
 	if err := json.Unmarshal(rec.Body.Bytes(), &payload); err != nil {
 		t.Fatalf("json: %v", err)
 	}
-	if payload["error"] != context.Canceled.Error() {
-		t.Fatalf("error field = %q, want canceled", payload["error"])
+	if payload["message"] != context.Canceled.Error() {
+		t.Fatalf("error field = %q, want canceled", payload["message"])
 	}
 }
 
@@ -280,8 +280,8 @@ func TestProxyGetRequest_ClientError(t *testing.T) {
 	if err := json.Unmarshal(rec.Body.Bytes(), &payload); err != nil {
 		t.Fatalf("json: %v", err)
 	}
-	if payload["error"] != "connection refused" {
-		t.Fatalf("error field = %q", payload["error"])
+	if payload["message"] != "connection refused" {
+		t.Fatalf("error field = %q", payload["message"])
 	}
 }
 
