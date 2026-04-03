@@ -24,7 +24,7 @@ func AWSCognitoAccessMiddleware(groupName string) gin.HandlerFunc {
 			return
 		}
 
-		oidcData := c.GetHeader("X-Amzn-Oidc-Data")
+		oidcData := c.GetHeader("X-Amzn-Oidc-Accesstoken")
 		if oidcData == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"message": "No authentication data provided"})
 			c.Abort()
