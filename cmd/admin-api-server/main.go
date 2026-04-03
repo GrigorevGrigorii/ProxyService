@@ -55,6 +55,9 @@ func main() {
 	}))
 	router.Use(middlewares.RequestIDMiddleware())
 	router.Use(middlewares.ZerologMiddleware(cfg.LogPings))
+	if cfg.AWSCognitoGroup != "" {
+		router.Use(middlewares.AWSCognitoAccessMiddleware(cfg.AWSCognitoGroup))
+	}
 
 	// Swagger
 	docs.SwaggerInfo.Host = cfg.SwaggerHost

@@ -45,24 +45,20 @@ func (cfg RedisConfig) GetMasterName() string {
 }
 
 type ProxyServerConfig struct {
-	Port        int         `mapstructure:"port"`
-	SwaggerHost string      `mapstructure:"swagger_host"`
-	LogPings    bool        `mapstructure:"log_pings"`
-	PGConfig    PGConfig    `mapstructure:"pg"`
-	RedisConfig RedisConfig `mapstructure:"redis"`
-}
-
-type MockServerConfig struct {
-	Port               int  `mapstructure:"port"`
-	LogPings           bool `mapstructure:"log_pings"`
-	ResponseStatusCode int  `mapstructure:"response_status_code"`
+	Port            int         `mapstructure:"port"`
+	SwaggerHost     string      `mapstructure:"swagger_host"`
+	LogPings        bool        `mapstructure:"log_pings"`
+	AWSCognitoGroup string      `mapstructure:"aws_cognito_group"`
+	PGConfig        PGConfig    `mapstructure:"pg"`
+	RedisConfig     RedisConfig `mapstructure:"redis"`
 }
 
 type AdminServerConfig struct {
-	Port        int      `mapstructure:"port"`
-	SwaggerHost string   `mapstructure:"swagger_host"`
-	LogPings    bool     `mapstructure:"log_pings"`
-	PGConfig    PGConfig `mapstructure:"pg"`
+	Port            int      `mapstructure:"port"`
+	SwaggerHost     string   `mapstructure:"swagger_host"`
+	AWSCognitoGroup string   `mapstructure:"aws_cognito_group"`
+	LogPings        bool     `mapstructure:"log_pings"`
+	PGConfig        PGConfig `mapstructure:"pg"`
 }
 
 type BackgroundWorkerConfig struct {
@@ -80,6 +76,12 @@ type MigrationConfig struct {
 	PGConfig                PGConfig `mapstructure:"pg"`
 	PGPasswordAWSSecretName string   `mapstructure:"pg_password_aws_secret_name"`
 	AWSRegion               string   `mapstructure:"aws_region"`
+}
+
+type MockServerConfig struct {
+	Port               int  `mapstructure:"port"`
+	LogPings           bool `mapstructure:"log_pings"`
+	ResponseStatusCode int  `mapstructure:"response_status_code"`
 }
 
 // Configs of all services must end with "Config"
