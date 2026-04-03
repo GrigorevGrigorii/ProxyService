@@ -9,6 +9,7 @@ on:
       - "deployments/**"
       - "internal/**"
       - ".github/workflows/deploy_to_aws.yml"
+      - "need_release.txt"
     branches:
       - master
 
