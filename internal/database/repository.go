@@ -47,7 +47,7 @@ func (r *DBRepository) Get(ctx context.Context, name string) (*Service, error) {
 
 func (r *DBRepository) GetFiltered(ctx context.Context, name, path, method, query string) (*Service, error) {
 	targetsFilter := func(db gorm.PreloadBuilder) error {
-		db.Where("path = ? AND method = ? AND query = ?", path, method, query)
+		db.Where("path = ? AND method = ? AND (query = ? OR query = '*')", path, method, query)
 		return nil
 	}
 	service, err := gorm.G[Service](r.DB).Preload("Targets", targetsFilter).Where("name = ?", name).First(ctx)

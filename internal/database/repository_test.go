@@ -85,7 +85,7 @@ func TestDBRepositoryGetFiltered(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{
 			"name", "scheme", "host", "timeout", "retry_count", "retry_interval", "version",
 		}).AddRow("mock", "http", "localhost:8080", 1.5, 0, 0, 1))
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "targets" WHERE "targets"."service_name" = $1 AND (path = $2 AND method = $3 AND query = $4)`)).
+	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "targets" WHERE "targets"."service_name" = $1 AND (path = $2 AND method = $3 AND (query = $4 OR query = '*'))`)).
 		WithArgs("mock", "/mock", "GET", "query=param").
 		WillReturnRows(sqlmock.NewRows([]string{"service_name", "path", "method", "query"}).AddRow("mock", "/mock", "GET", "query=param"))
 

@@ -176,6 +176,9 @@ func checkService(service *models.ServiceDTO) error {
 
 		// Check service.Targets[i].CacheInterval
 		if service.Targets[i].CacheInterval != nil {
+			if service.Targets[i].Query == "*" {
+				return errors.New("Not allowed to set cache interval for target with query='*'")
+			}
 			if _, err := time.ParseDuration(*service.Targets[i].CacheInterval); err != nil {
 				return err
 			}
