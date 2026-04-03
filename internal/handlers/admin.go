@@ -4,10 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 	"proxy-service/internal/database"
 	"proxy-service/internal/models"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -79,7 +77,7 @@ func (h *AdminHandlers) CreateService(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, ErrorResponse{Message: err.Error()})
 		return
 	}
-	if err := checkService(&request); err != nil {
+	if err := request.Validate(); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, ErrorResponse{Message: fmt.Sprintf("Cannot parse query: %s", err.Error())})
 		return
 	}
@@ -118,7 +116,7 @@ func (h *AdminHandlers) UpdateService(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, ErrorResponse{Message: err.Error()})
 		return
 	}
-	if err := checkService(&request); err != nil {
+	if err := request.Validate(); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, ErrorResponse{Message: fmt.Sprintf("Cannot parse query: %s", err.Error())})
 		return
 	}
@@ -161,28 +159,4 @@ func (h *AdminHandlers) DeleteService(c *gin.Context) {
 		return
 	}
 	c.IndentedJSON(http.StatusOK, StatusResponse{Status: "ok"})
-}
-
-func checkService(service *models.ServiceDTO) error {
-	for i := range service.Targets {
-		// Check service.Targets[i].Query
-		if len(service.Targets[i].Query) > 0 {
-			query, err := url.ParseQuery(service.Targets[i].Query)
-			if err != nil {
-				return err
-			}
-			service.Targets[i].Query = query.Encode()
-		}
-
-		// Check service.Targets[i].CacheInterval
-		if service.Targets[i].CacheInterval != nil {
-			if service.Targets[i].Query == "*" {
-				return errors.New("Not allowed to set cache interval for target with query='*'")
-			}
-			if _, err := time.ParseDuration(*service.Targets[i].CacheInterval); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
 }
