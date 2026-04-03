@@ -19,6 +19,11 @@ type UserClaims struct {
 
 func AWSCognitoAccessMiddleware(groupName string) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		if strings.HasSuffix(c.Request.URL.Path, "/ping") {
+			c.Next()
+			return
+		}
+
 		oidcData := c.GetHeader("X-Amzn-Oidc-Data")
 		if oidcData == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"message": "No authentication data provided"})
