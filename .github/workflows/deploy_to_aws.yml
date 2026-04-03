@@ -45,7 +45,7 @@ jobs:
     strategy:
       matrix:
         microservice:
-          - name: proxy-api-server
+          - name: proxy-api-server-2
             context: .
             dockerfile: ./build/package/Dockerfile
             ecr-repo: proxy-service/proxy-api-server
@@ -53,7 +53,7 @@ jobs:
             container-name: Main
             build-args: '--build-arg SERVICE=proxy-api-server --build-arg PORT=80'
             target: api-server
-          - name: admin-api-server
+          - name: admin-api-server-2
             context: .
             dockerfile: ./build/package/Dockerfile
             ecr-repo: proxy-service/admin-api-server

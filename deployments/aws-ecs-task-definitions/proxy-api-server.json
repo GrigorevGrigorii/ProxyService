@@ -70,7 +70,7 @@
                 },
                 {
                     "name": "SWAGGER_HOST",
-                    "value": "pr-25428596cae74c9a8cd09e26b8a82d97.ecs.ap-southeast-1.on.aws"
+                    "value": "proxy-service.duckdns.org"
                 },
                 {
                     "name": "AWS_COGNITO_GROUP",
