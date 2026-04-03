@@ -73,7 +73,7 @@ func main() {
 		AllowMethods:    []string{"GET", "POST", "PUT", "DELETE"},
 	}))
 	router.Use(middlewares.RequestIDMiddleware())
-	router.Use(middlewares.ZerologMiddleware(cfg.LogPings))
+	router.Use(middlewares.ZerologMiddleware())
 	if cfg.AWSCognitoGroup != "" {
 		router.Use(middlewares.AWSCognitoAccessMiddleware(cfg.AWSCognitoGroup))
 	}

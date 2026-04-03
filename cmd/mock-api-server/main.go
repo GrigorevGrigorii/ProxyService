@@ -53,7 +53,7 @@ func main() {
 
 	// Middlewares
 	router.Use(middlewares.RequestIDMiddleware())
-	router.Use(middlewares.ZerologMiddleware(cfg.LogPings))
+	router.Use(middlewares.ZerologMiddleware())
 
 	// Handlers
 	mockHandlers := MockHandlers{

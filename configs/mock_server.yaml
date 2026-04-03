@@ -1,3 +1,2 @@
 port: 8081
 response_status_code: 200
-log_pings: false

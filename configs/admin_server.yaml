@@ -1,6 +1,5 @@
 port: 8082
 swagger_host: localhost:8082
-log_pings: false
 aws_cognito_group: ''
 pg:
   user: proxy_service_user
