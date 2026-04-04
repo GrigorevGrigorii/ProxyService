@@ -45,7 +45,7 @@
                 },
                 {
                     "name": "SWAGGER_HOST",
-                    "value": "proxy-service.duckdns.org"
+                    "value": "proxy-service.sylu.net"
                 },
                 {
                     "name": "AWS_COGNITO_GROUP",
