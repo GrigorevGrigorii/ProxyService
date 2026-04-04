@@ -26,8 +26,8 @@ func init() {
 }
 
 func validDuration(fl validator.FieldLevel) bool {
-	interval := fl.Field().String()
-	if _, err := time.ParseDuration(interval); err != nil {
+	duration := fl.Field().String()
+	if _, err := time.ParseDuration(duration); err != nil {
 		return false
 	}
 	return true

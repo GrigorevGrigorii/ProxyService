@@ -77,7 +77,7 @@ func (h *AdminHandlers) CreateService(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, ErrorResponse{Message: err.Error()})
 		return
 	}
-	if err := models.Validate.Struct(request); err != nil {
+	if err := models.Validate.StructCtx(c.Request.Context(), request); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, ErrorResponse{Message: fmt.Sprintf("Cannot parse query: %s", err.Error())})
 		return
 	}
@@ -119,7 +119,7 @@ func (h *AdminHandlers) UpdateService(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, ErrorResponse{Message: err.Error()})
 		return
 	}
-	if err := models.Validate.Struct(request); err != nil {
+	if err := models.Validate.StructCtx(c.Request.Context(), request); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, ErrorResponse{Message: fmt.Sprintf("Cannot parse query: %s", err.Error())})
 		return
 	}
