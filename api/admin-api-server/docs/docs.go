@@ -28,7 +28,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers.StatusResponse"
+                            "$ref": "#/definitions/internal_handlers.MessageResponse"
                         }
                     }
                 }
@@ -81,19 +81,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers.StatusResponse"
+                            "$ref": "#/definitions/internal_handlers.MessageResponse"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                            "$ref": "#/definitions/internal_handlers.MessageResponse"
                         }
                     },
                     "409": {
                         "description": "Service already exists",
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                            "$ref": "#/definitions/internal_handlers.MessageResponse"
                         }
                     }
                 }
@@ -127,7 +127,7 @@ const docTemplate = `{
                     "404": {
                         "description": "Service not found",
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                            "$ref": "#/definitions/internal_handlers.MessageResponse"
                         }
                     }
                 }
@@ -165,19 +165,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers.StatusResponse"
+                            "$ref": "#/definitions/internal_handlers.MessageResponse"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                            "$ref": "#/definitions/internal_handlers.MessageResponse"
                         }
                     },
                     "404": {
                         "description": "Service not found",
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                            "$ref": "#/definitions/internal_handlers.MessageResponse"
                         }
                     }
                 }
@@ -203,7 +203,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers.StatusResponse"
+                            "$ref": "#/definitions/internal_handlers.MessageResponse"
                         }
                     }
                 }
@@ -211,18 +211,10 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "internal_handlers.ErrorResponse": {
+        "internal_handlers.MessageResponse": {
             "type": "object",
             "properties": {
                 "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "internal_handlers.StatusResponse": {
-            "type": "object",
-            "properties": {
-                "status": {
                     "type": "string"
                 }
             }

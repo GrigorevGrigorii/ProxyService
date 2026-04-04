@@ -6,11 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type StatusResponse struct {
-	Status string `json:"status"`
-}
-
-type ErrorResponse struct {
+type MessageResponse struct {
 	Message string `json:"message"`
 }
 
@@ -19,8 +15,8 @@ type ErrorResponse struct {
 //	@Summary	Ping
 //	@Tags		Common API
 //	@Produce	json
-//	@Success	200	{object}	StatusResponse	"Success"
+//	@Success	200	{object}	MessageResponse	"Success"
 //	@Router		/ping [get]
 func Ping(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, StatusResponse{Status: "ok"})
+	c.IndentedJSON(http.StatusOK, MessageResponse{Message: "ok"})
 }

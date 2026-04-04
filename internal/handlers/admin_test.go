@@ -277,7 +277,7 @@ func TestDeleteService(t *testing.T) {
 	if err := json.Unmarshal(w.Body.Bytes(), &got); err != nil {
 		t.Fatalf("failed to unmarshal response body: %v", err)
 	}
-	expected := map[string]string{"status": "ok"}
+	expected := map[string]string{"message": "ok"}
 	if !reflect.DeepEqual(got, expected) {
 		t.Fatalf("unexpected response body: %s", w.Body.String())
 	}

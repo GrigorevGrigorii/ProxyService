@@ -32,11 +32,11 @@ type ProxyHandlers struct {
 func (h *ProxyHandlers) ProxyGetRequest(c *gin.Context) {
 	service, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"), c.Request.URL.Query().Encode())
 	if errors.Is(err, database.ErrNotFound) {
-		c.IndentedJSON(http.StatusForbidden, ErrorResponse{Message: "service, path or query params are not allowed"})
+		c.IndentedJSON(http.StatusForbidden, MessageResponse{Message: "service, path or query params are not allowed"})
 		return
 	}
 	if err != nil {
-		c.IndentedJSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		c.IndentedJSON(http.StatusInternalServerError, MessageResponse{Message: err.Error()})
 		return
 	}
 	target := service.Targets[0]
@@ -69,7 +69,7 @@ func (h *ProxyHandlers) ProxyGetRequest(c *gin.Context) {
 		time.Duration(service.RetryInterval*float32(time.Second)),
 	)
 	if err != nil {
-		c.IndentedJSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		c.IndentedJSON(http.StatusInternalServerError, MessageResponse{Message: err.Error()})
 		return
 	}
 
@@ -89,14 +89,14 @@ func (h *ProxyHandlers) ProxyGetRequest(c *gin.Context) {
 func (h *ProxyHandlers) ProxyPostRequest(c *gin.Context) {
 	_, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"), "")
 	if errors.Is(err, database.ErrNotFound) {
-		c.IndentedJSON(http.StatusForbidden, ErrorResponse{Message: "service, path or query params are not allowed"})
+		c.IndentedJSON(http.StatusForbidden, MessageResponse{Message: "service, path or query params are not allowed"})
 		return
 	}
 	if err != nil {
-		c.IndentedJSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		c.IndentedJSON(http.StatusInternalServerError, MessageResponse{Message: err.Error()})
 		return
 	}
-	c.IndentedJSON(http.StatusNotImplemented, ErrorResponse{Message: "not_implemented_error"})
+	c.IndentedJSON(http.StatusNotImplemented, MessageResponse{Message: "not_implemented_error"})
 }
 
 // ProxyPutRequest godoc
@@ -110,14 +110,14 @@ func (h *ProxyHandlers) ProxyPostRequest(c *gin.Context) {
 func (h *ProxyHandlers) ProxyPutRequest(c *gin.Context) {
 	_, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"), "")
 	if errors.Is(err, database.ErrNotFound) {
-		c.IndentedJSON(http.StatusForbidden, ErrorResponse{Message: "service, path or query params are not allowed"})
+		c.IndentedJSON(http.StatusForbidden, MessageResponse{Message: "service, path or query params are not allowed"})
 		return
 	}
 	if err != nil {
-		c.IndentedJSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		c.IndentedJSON(http.StatusInternalServerError, MessageResponse{Message: err.Error()})
 		return
 	}
-	c.IndentedJSON(http.StatusNotImplemented, ErrorResponse{Message: "not_implemented_error"})
+	c.IndentedJSON(http.StatusNotImplemented, MessageResponse{Message: "not_implemented_error"})
 }
 
 // ProxyDeleteRequest godoc
@@ -131,14 +131,14 @@ func (h *ProxyHandlers) ProxyPutRequest(c *gin.Context) {
 func (h *ProxyHandlers) ProxyDeleteRequest(c *gin.Context) {
 	_, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"), "")
 	if errors.Is(err, database.ErrNotFound) {
-		c.IndentedJSON(http.StatusForbidden, ErrorResponse{Message: "service, path or query params are not allowed"})
+		c.IndentedJSON(http.StatusForbidden, MessageResponse{Message: "service, path or query params are not allowed"})
 		return
 	}
 	if err != nil {
-		c.IndentedJSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		c.IndentedJSON(http.StatusInternalServerError, MessageResponse{Message: err.Error()})
 		return
 	}
-	c.IndentedJSON(http.StatusNotImplemented, ErrorResponse{Message: "not_implemented_error"})
+	c.IndentedJSON(http.StatusNotImplemented, MessageResponse{Message: "not_implemented_error"})
 }
 
 func (h *ProxyHandlers) getAllowedService(ctx context.Context, service, method, path, query string) (*database.Service, error) {

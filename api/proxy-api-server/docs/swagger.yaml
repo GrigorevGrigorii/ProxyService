@@ -1,8 +1,8 @@
 basePath: /api/proxy
 definitions:
-  internal_handlers.StatusResponse:
+  internal_handlers.MessageResponse:
     properties:
-      status:
+      message:
         type: string
     type: object
 info:
@@ -19,7 +19,7 @@ paths:
         "200":
           description: Success
           schema:
-            $ref: '#/definitions/internal_handlers.StatusResponse'
+            $ref: '#/definitions/internal_handlers.MessageResponse'
       summary: Ping
       tags:
       - Common API

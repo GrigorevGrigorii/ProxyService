@@ -28,7 +28,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers.StatusResponse"
+                            "$ref": "#/definitions/internal_handlers.MessageResponse"
                         }
                     }
                 }
@@ -134,10 +134,10 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "internal_handlers.StatusResponse": {
+        "internal_handlers.MessageResponse": {
             "type": "object",
             "properties": {
-                "status": {
+                "message": {
                     "type": "string"
                 }
             }
