@@ -13,7 +13,7 @@ func TestValidate(t *testing.T) {
 		Timeout: 10.0,
 	}
 	cacheInterval := "1m"
-	incorrectCacheInterval := "incoddect"
+	incorrectCacheInterval := "incorrect"
 
 	testCases := []struct {
 		Target        TargetDTO

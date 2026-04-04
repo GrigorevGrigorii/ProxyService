@@ -18,14 +18,14 @@ func init() {
 	once.Do(func() {
 		Validate = validator.New()
 
-		Validate.RegisterValidation("duration", validCacheInterval)
+		Validate.RegisterValidation("duration", validDuration)
 		Validate.RegisterValidation("query", validQuery)
 
 		Validate.RegisterStructValidation(validateTarget, TargetDTO{})
 	})
 }
 
-func validCacheInterval(fl validator.FieldLevel) bool {
+func validDuration(fl validator.FieldLevel) bool {
 	interval := fl.Field().String()
 	if _, err := time.ParseDuration(interval); err != nil {
 		return false
