@@ -12,6 +12,7 @@ import (
 	"proxy-service/internal/httpclient"
 	"proxy-service/internal/middlewares"
 
+	"github.com/casbin/casbin/v2"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
@@ -28,7 +29,7 @@ import (
 func main() {
 	// Logging
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-	if gin.Mode() == gin.DebugMode {
+	if gin.IsDebugging() {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	} else {
@@ -62,6 +63,12 @@ func main() {
 		ReadOnly:   cfg.RedisConfig.ReadOnly,
 	})
 
+	// Casbin
+	casbinEnforcer, err := casbin.NewEnforcer("configs/auth/authz_model.conf", "configs/auth/authz_policy.csv")
+	if err != nil {
+		log.Fatal().Msg(err.Error())
+	}
+
 	// Router
 	router := gin.New()
 	router.SetTrustedProxies(nil)
@@ -74,9 +81,8 @@ func main() {
 	}))
 	router.Use(middlewares.RequestIDMiddleware())
 	router.Use(middlewares.ZerologMiddleware())
-	if cfg.AWSCognitoGroup != "" {
-		router.Use(middlewares.AWSCognitoAccessMiddleware(cfg.AWSCognitoGroup))
-	}
+	router.Use(middlewares.AWSCognitoMiddleware(gin.IsDebugging()))
+	router.Use(middlewares.AccessMiddleware(casbinEnforcer))
 
 	// Swagger
 	docs.SwaggerInfo.Host = cfg.SwaggerHost

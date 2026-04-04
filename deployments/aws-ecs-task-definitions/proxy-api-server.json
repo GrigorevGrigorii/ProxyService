@@ -71,10 +71,6 @@
                 {
                     "name": "SWAGGER_HOST",
                     "value": "proxy-service.sylu.net"
-                },
-                {
-                    "name": "AWS_COGNITO_GROUP",
-                    "value": "proxy-service-proxy-access"
                 }
             ],
             "mountPoints": [],

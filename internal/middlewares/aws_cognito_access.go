@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"slices"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -17,8 +16,15 @@ type UserClaims struct {
 	Email         string   `json:"email"`
 }
 
-func AWSCognitoAccessMiddleware(groupName string) gin.HandlerFunc {
+func AWSCognitoMiddleware(isDebugging bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		if isDebugging {
+			c.Set("user_email", "mock@user.com")
+			c.Set("user_roles", []string{"proxy-service-admin-access", "proxy-service-proxy-access"})
+			c.Next()
+			return
+		}
+
 		if strings.HasSuffix(c.Request.URL.Path, "/ping") {
 			c.Next()
 			return
@@ -39,13 +45,8 @@ func AWSCognitoAccessMiddleware(groupName string) gin.HandlerFunc {
 			return
 		}
 
-		if !slices.Contains(claims.CognitoGroups, groupName) {
-			c.JSON(http.StatusForbidden, gin.H{"message": "Forbidden"})
-			c.Abort()
-			return
-		}
-
-		log.Info().Msgf("User %s has enough permission to process request", claims.Email)
+		c.Set("user_email", claims.Email)
+		c.Set("user_roles", claims.CognitoGroups)
 		c.Next()
 	}
 }

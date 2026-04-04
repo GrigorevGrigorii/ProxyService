@@ -1,0 +1,9 @@
+# Admin role - full access to /api/admin/*
+p, admin, /api/admin/*, *
+
+# Client role - full access to /api/proxy/*
+p, client, /api/proxy/*, *
+
+# Role assignments (mapping service roles to policy roles)
+g, proxy-service-admin-access, admin
+g, proxy-service-proxy-access, client
