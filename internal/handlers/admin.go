@@ -77,9 +77,12 @@ func (h *AdminHandlers) CreateService(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, ErrorResponse{Message: err.Error()})
 		return
 	}
-	if err := request.Validate(); err != nil {
+	if err := models.Validate.Struct(request); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, ErrorResponse{Message: fmt.Sprintf("Cannot parse query: %s", err.Error())})
 		return
+	}
+	for i := range request.Targets {
+		request.Targets[i].SortQuery()
 	}
 
 	request.Version = 0
@@ -116,9 +119,12 @@ func (h *AdminHandlers) UpdateService(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, ErrorResponse{Message: err.Error()})
 		return
 	}
-	if err := request.Validate(); err != nil {
+	if err := models.Validate.Struct(request); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, ErrorResponse{Message: fmt.Sprintf("Cannot parse query: %s", err.Error())})
 		return
+	}
+	for i := range request.Targets {
+		request.Targets[i].SortQuery()
 	}
 
 	if request.Name != c.Param("name") {

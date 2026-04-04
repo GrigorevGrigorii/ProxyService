@@ -1,45 +1,71 @@
 package models
 
 import (
-	"errors"
 	"net/http"
 	"net/url"
+	"sync"
 	"time"
+
+	"github.com/go-playground/validator/v10"
 )
 
-func (t *TargetDTO) Validate() error {
-	// Check service.Targets[i].Query
-	query := t.Query
-	if len(query) > 0 && query != "*" {
-		parsedQuery, err := url.ParseQuery(t.Query)
-		if err != nil {
-			return err
-		}
-		t.Query = parsedQuery.Encode()
-	}
+var (
+	Validate *validator.Validate
+	once     sync.Once
+)
 
-	// Check service.Targets[i].CacheInterval
-	if t.CacheInterval != nil {
-		if t.Method != http.MethodGet {
-			return errors.New("'cache_interval' can be set only for GET requests")
-		}
-		if t.Query == "*" {
-			return errors.New("Not allowed to set cache interval for target with query='*'")
-		}
-		if _, err := time.ParseDuration(*t.CacheInterval); err != nil {
-			return err
-		}
-	}
+func init() {
+	once.Do(func() {
+		Validate = validator.New()
 
-	return nil
+		Validate.RegisterValidation("duration", validCacheInterval)
+		Validate.RegisterValidation("query", validQuery)
+
+		Validate.RegisterStructValidation(validateTarget, TargetDTO{})
+	})
 }
 
-func (s *ServiceDTO) Validate() error {
-	for i := range s.Targets {
-		err := s.Targets[i].Validate()
-		if err != nil {
-			return err
+func validCacheInterval(fl validator.FieldLevel) bool {
+	interval := fl.Field().String()
+	if _, err := time.ParseDuration(interval); err != nil {
+		return false
+	}
+	return true
+}
+
+func validQuery(fl validator.FieldLevel) bool {
+	query := fl.Field().String()
+	if query == "" || query == "*" {
+		return true
+	}
+	_, err := url.ParseQuery(query)
+	if err != nil {
+		return false
+	}
+	return true
+}
+
+func validateTarget(sl validator.StructLevel) {
+	target := sl.Current().Interface().(TargetDTO)
+
+	if target.CacheInterval != nil {
+		if target.Method != http.MethodGet {
+			sl.ReportError(
+				target.CacheInterval,
+				"CacheInterval",
+				"cache_interval",
+				"must_be_nil_for_non_get_methods",
+				"'cache_interval' can be set only for GET method",
+			)
+		}
+		if target.Query == "*" {
+			sl.ReportError(
+				target.CacheInterval,
+				"CacheInterval",
+				"cache_interval",
+				"must_be_nil_for_*_query",
+				"'cache_interval' can be set only non * query",
+			)
 		}
 	}
-	return nil
 }

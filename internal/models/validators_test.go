@@ -6,51 +6,45 @@ import (
 )
 
 func TestValidate(t *testing.T) {
-	serviceTemplate := ServiceDTO{}
+	serviceTemplate := ServiceDTO{
+		Name:    "mock",
+		Scheme:  "http",
+		Host:    "localhost:8080",
+		Timeout: 10.0,
+	}
 	cacheInterval := "1m"
 	incorrectCacheInterval := "incoddect"
 
 	testCases := []struct {
 		Target        TargetDTO
 		ExpectedError string
-		ExpectedQuery string
 	}{
 		{
 			Target:        TargetDTO{Path: "/", Method: http.MethodGet, Query: "*", CacheInterval: nil},
 			ExpectedError: "",
-			ExpectedQuery: "*",
 		},
 		{
 			Target:        TargetDTO{Path: "/", Method: http.MethodGet, Query: "a=b", CacheInterval: nil},
 			ExpectedError: "",
-			ExpectedQuery: "a=b",
 		},
 		{
 			Target:        TargetDTO{Path: "/", Method: http.MethodGet, Query: "*", CacheInterval: &cacheInterval},
-			ExpectedError: "Not allowed to set cache interval for target with query='*'",
-			ExpectedQuery: "*",
+			ExpectedError: "Key: 'ServiceDTO.Targets[0].CacheInterval' Error:Field validation for 'CacheInterval' failed on the 'must_be_nil_for_*_query' tag",
 		},
 		{
 			Target:        TargetDTO{Path: "/", Method: http.MethodGet, Query: "a=b", CacheInterval: &incorrectCacheInterval},
-			ExpectedError: "time: invalid duration \"incoddect\"",
-			ExpectedQuery: "a=b",
+			ExpectedError: "Key: 'ServiceDTO.Targets[0].CacheInterval' Error:Field validation for 'CacheInterval' failed on the 'duration' tag",
 		},
 		{
 			Target:        TargetDTO{Path: "/", Method: http.MethodPost, Query: "a=b", CacheInterval: &cacheInterval},
-			ExpectedError: "'cache_interval' can be set only for GET requests",
-			ExpectedQuery: "a=b",
-		},
-		{
-			Target:        TargetDTO{Path: "/", Method: http.MethodGet, Query: "b=c&a=b", CacheInterval: nil},
-			ExpectedError: "",
-			ExpectedQuery: "a=b&b=c",
+			ExpectedError: "Key: 'ServiceDTO.Targets[0].CacheInterval' Error:Field validation for 'CacheInterval' failed on the 'must_be_nil_for_non_get_methods' tag",
 		},
 	}
 
 	for _, tc := range testCases {
 		serviceTemplate.Targets = []TargetDTO{tc.Target}
 
-		err := serviceTemplate.Validate()
+		err := Validate.Struct(serviceTemplate)
 		errStr := ""
 		if err != nil {
 			errStr = err.Error()
@@ -58,9 +52,6 @@ func TestValidate(t *testing.T) {
 
 		if errStr != tc.ExpectedError {
 			t.Fatalf("Expected error '%s', got '%s' for target %v", tc.ExpectedError, errStr, tc.Target)
-		}
-		if serviceTemplate.Targets[0].Query != tc.ExpectedQuery {
-			t.Fatalf("Expected query '%s', got '%s' for target %v", tc.ExpectedQuery, serviceTemplate.Targets[0].Query, tc.Target)
 		}
 	}
 }
