@@ -13,14 +13,21 @@ definitions:
   proxy-service_internal_models.ServiceDTO:
     properties:
       host:
+        minLength: 1
         type: string
       name:
+        minLength: 1
         type: string
       retry_count:
+        minimum: 0
         type: integer
       retry_interval:
+        minimum: 0
         type: number
       scheme:
+        enum:
+        - https
+        - http
         type: string
       targets:
         items:
@@ -29,18 +36,32 @@ definitions:
       timeout:
         type: number
       version:
+        minimum: 0
         type: integer
+    required:
+    - host
+    - name
+    - scheme
+    - timeout
     type: object
   proxy-service_internal_models.TargetDTO:
     properties:
       cache_interval:
         type: string
       method:
+        enum:
+        - GET
+        - POST
+        - PUT
+        - DELETE
         type: string
       path:
         type: string
       query:
         type: string
+    required:
+    - method
+    - path
     type: object
 info:
   contact: {}

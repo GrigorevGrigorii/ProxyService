@@ -229,21 +229,35 @@ const docTemplate = `{
         },
         "proxy-service_internal_models.ServiceDTO": {
             "type": "object",
+            "required": [
+                "host",
+                "name",
+                "scheme",
+                "timeout"
+            ],
             "properties": {
                 "host": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 1
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 1
                 },
                 "retry_count": {
-                    "type": "integer"
+                    "type": "integer",
+                    "minimum": 0
                 },
                 "retry_interval": {
-                    "type": "number"
+                    "type": "number",
+                    "minimum": 0
                 },
                 "scheme": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "https",
+                        "http"
+                    ]
                 },
                 "targets": {
                     "type": "array",
@@ -255,18 +269,29 @@ const docTemplate = `{
                     "type": "number"
                 },
                 "version": {
-                    "type": "integer"
+                    "type": "integer",
+                    "minimum": 0
                 }
             }
         },
         "proxy-service_internal_models.TargetDTO": {
             "type": "object",
+            "required": [
+                "method",
+                "path"
+            ],
             "properties": {
                 "cache_interval": {
                     "type": "string"
                 },
                 "method": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "GET",
+                        "POST",
+                        "PUT",
+                        "DELETE"
+                    ]
                 },
                 "path": {
                     "type": "string"
