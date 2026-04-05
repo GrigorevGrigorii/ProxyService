@@ -22,7 +22,11 @@ type CacheTask struct {
 }
 
 func (t *CacheTask) Run(ctx context.Context, task *asynq.Task) error {
-	logger := log.With().Str("task_id", task.ResultWriter().TaskID()).Logger()
+	taskID := "unknown"
+	if rw := task.ResultWriter(); rw != nil {
+		taskID = rw.TaskID()
+	}
+	logger := log.With().Str("task_id", taskID).Logger()
 
 	logger.Info().Msgf("Running task with payload %s", string(task.Payload()))
 

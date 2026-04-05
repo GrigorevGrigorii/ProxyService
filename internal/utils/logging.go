@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 func GetLogger(ctx context.Context) *zerolog.Logger {
@@ -12,6 +13,5 @@ func GetLogger(ctx context.Context) *zerolog.Logger {
 		return logger
 	}
 
-	globalLogger := zerolog.Logger{}
-	return &globalLogger
+	return &log.Logger
 }
