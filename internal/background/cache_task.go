@@ -22,7 +22,9 @@ type CacheTask struct {
 }
 
 func (t *CacheTask) Run(ctx context.Context, task *asynq.Task) error {
-	log.Info().Msgf("Running task with payload %s", string(task.Payload()))
+	logger := log.With().Str("task_id", task.ResultWriter().TaskID()).Logger()
+
+	logger.Info().Msgf("Running task with payload %s", string(task.Payload()))
 
 	var service models.ServiceDTO
 	if err := json.Unmarshal(task.Payload(), &service); err != nil {
@@ -55,7 +57,7 @@ func (t *CacheTask) Run(ctx context.Context, task *asynq.Task) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		log.Error().Msgf("Got %d for %s, %s, %s. Do not save to cache", resp.StatusCode, service.Name, target.Path, target.Query)
+		logger.Error().Msgf("Got %d for %s, %s, %s. Do not save to cache", resp.StatusCode, service.Name, target.Path, target.Query)
 		return errors.New("Unsuccessful http response")
 	}
 
@@ -68,6 +70,6 @@ func (t *CacheTask) Run(ctx context.Context, task *asynq.Task) error {
 		return err
 	}
 
-	log.Info().Msgf("Successfully saved response to cache for %s, %s, %s", service.Name, target.Path, target.Query)
+	logger.Info().Msgf("Successfully saved response to cache for %s, %s, %s", service.Name, target.Path, target.Query)
 	return nil
 }
