@@ -1,10 +1,10 @@
 package middlewares
 
 import (
+	"proxy-service/internal/utils"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/rs/zerolog/log"
 )
 
 func ZerologMiddleware() gin.HandlerFunc {
@@ -13,10 +13,10 @@ func ZerologMiddleware() gin.HandlerFunc {
 
 		c.Next()
 
+		log := utils.GetLogger(c.Request.Context())
 		log.Info().
 			Str("method", c.Request.Method).
 			Str("path", c.Request.URL.Path).
-			Str("request-id", c.GetHeader("X-Request-ID")).
 			Int("status", c.Writer.Status()).
 			Dur("latency", time.Since(start)).
 			Str("client_ip", c.ClientIP()).

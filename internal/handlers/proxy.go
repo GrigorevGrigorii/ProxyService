@@ -9,10 +9,10 @@ import (
 	"proxy-service/internal/database"
 	"proxy-service/internal/httpclient"
 	"proxy-service/internal/models"
+	"proxy-service/internal/utils"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/rs/zerolog/log"
 )
 
 type ProxyHandlers struct {
@@ -30,6 +30,8 @@ type ProxyHandlers struct {
 //	@Param			path	path	string	true	"Path of target to proxy"
 //	@Router			/v1/{service}/{path} [get]
 func (h *ProxyHandlers) ProxyGetRequest(c *gin.Context) {
+	log := utils.GetLogger(c.Request.Context())
+
 	service, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"), c.Request.URL.Query().Encode())
 	if errors.Is(err, database.ErrNotFound) {
 		c.IndentedJSON(http.StatusForbidden, MessageResponse{Message: "service, path or query params are not allowed"})

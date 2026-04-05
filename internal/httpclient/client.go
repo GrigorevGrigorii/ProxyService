@@ -3,9 +3,8 @@ package httpclient
 import (
 	"context"
 	"net/http"
+	"proxy-service/internal/utils"
 	"time"
-
-	"github.com/rs/zerolog/log"
 )
 
 type HTTPClient interface {
@@ -15,6 +14,8 @@ type HTTPClient interface {
 type Client struct{}
 
 func (c *Client) Get(ctx context.Context, url string, timeout time.Duration, retryCount uint8, retryInterval time.Duration) (*http.Response, error) {
+	log := utils.GetLogger(ctx)
+
 	var reqErr error
 	var resp *http.Response
 	var currentRetryCount uint8 = 0
