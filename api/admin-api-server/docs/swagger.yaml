@@ -5,7 +5,7 @@ definitions:
       message:
         type: string
     type: object
-  proxy-service_internal_models.ServiceDTO:
+  internal_handlers.createServiceRequest:
     properties:
       host:
         minLength: 1
@@ -26,20 +26,20 @@ definitions:
         type: string
       targets:
         items:
-          $ref: '#/definitions/proxy-service_internal_models.TargetDTO'
+          $ref: '#/definitions/internal_handlers.target'
         type: array
       timeout:
         type: number
-      version:
-        minimum: 0
-        type: integer
     required:
     - host
     - name
+    - retry_count
+    - retry_interval
     - scheme
+    - targets
     - timeout
     type: object
-  proxy-service_internal_models.TargetDTO:
+  internal_handlers.target:
     properties:
       cache_interval:
         type: string
@@ -57,6 +57,73 @@ definitions:
     required:
     - method
     - path
+    - query
+    type: object
+  internal_handlers.updateServiceRequest:
+    properties:
+      host:
+        minLength: 1
+        type: string
+      retry_count:
+        minimum: 0
+        type: integer
+      retry_interval:
+        minimum: 0
+        type: number
+      scheme:
+        enum:
+        - https
+        - http
+        type: string
+      targets:
+        items:
+          $ref: '#/definitions/internal_handlers.target'
+        type: array
+      timeout:
+        type: number
+      version:
+        minimum: 0
+        type: integer
+    required:
+    - host
+    - retry_count
+    - retry_interval
+    - scheme
+    - targets
+    - timeout
+    - version
+    type: object
+  proxy-service_internal_models.ServiceDTO:
+    properties:
+      host:
+        type: string
+      name:
+        type: string
+      retry_count:
+        type: integer
+      retry_interval:
+        type: number
+      scheme:
+        type: string
+      targets:
+        items:
+          $ref: '#/definitions/proxy-service_internal_models.TargetDTO'
+        type: array
+      timeout:
+        type: number
+      version:
+        type: integer
+    type: object
+  proxy-service_internal_models.TargetDTO:
+    properties:
+      cache_interval:
+        type: string
+      method:
+        type: string
+      path:
+        type: string
+      query:
+        type: string
     type: object
 info:
   contact: {}
@@ -99,7 +166,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/proxy-service_internal_models.ServiceDTO'
+          $ref: '#/definitions/internal_handlers.createServiceRequest'
       produces:
       - application/json
       responses:
@@ -166,12 +233,12 @@ paths:
         name: name
         required: true
         type: string
-      - description: Service data (with targets)
+      - description: Service data
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/proxy-service_internal_models.ServiceDTO'
+          $ref: '#/definitions/internal_handlers.updateServiceRequest'
       produces:
       - application/json
       responses:

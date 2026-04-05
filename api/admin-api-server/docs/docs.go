@@ -73,7 +73,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/proxy-service_internal_models.ServiceDTO"
+                            "$ref": "#/definitions/internal_handlers.createServiceRequest"
                         }
                     }
                 ],
@@ -152,12 +152,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Service data (with targets)",
+                        "description": "Service data",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/proxy-service_internal_models.ServiceDTO"
+                            "$ref": "#/definitions/internal_handlers.updateServiceRequest"
                         }
                     }
                 ],
@@ -219,12 +219,15 @@ const docTemplate = `{
                 }
             }
         },
-        "proxy-service_internal_models.ServiceDTO": {
+        "internal_handlers.createServiceRequest": {
             "type": "object",
             "required": [
                 "host",
                 "name",
+                "retry_count",
+                "retry_interval",
                 "scheme",
+                "targets",
                 "timeout"
             ],
             "properties": {
@@ -254,23 +257,20 @@ const docTemplate = `{
                 "targets": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/proxy-service_internal_models.TargetDTO"
+                        "$ref": "#/definitions/internal_handlers.target"
                     }
                 },
                 "timeout": {
                     "type": "number"
-                },
-                "version": {
-                    "type": "integer",
-                    "minimum": 0
                 }
             }
         },
-        "proxy-service_internal_models.TargetDTO": {
+        "internal_handlers.target": {
             "type": "object",
             "required": [
                 "method",
-                "path"
+                "path",
+                "query"
             ],
             "properties": {
                 "cache_interval": {
@@ -284,6 +284,101 @@ const docTemplate = `{
                         "PUT",
                         "DELETE"
                     ]
+                },
+                "path": {
+                    "type": "string"
+                },
+                "query": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handlers.updateServiceRequest": {
+            "type": "object",
+            "required": [
+                "host",
+                "retry_count",
+                "retry_interval",
+                "scheme",
+                "targets",
+                "timeout",
+                "version"
+            ],
+            "properties": {
+                "host": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "retry_count": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "retry_interval": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "scheme": {
+                    "type": "string",
+                    "enum": [
+                        "https",
+                        "http"
+                    ]
+                },
+                "targets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_handlers.target"
+                    }
+                },
+                "timeout": {
+                    "type": "number"
+                },
+                "version": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        "proxy-service_internal_models.ServiceDTO": {
+            "type": "object",
+            "properties": {
+                "host": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "retry_count": {
+                    "type": "integer"
+                },
+                "retry_interval": {
+                    "type": "number"
+                },
+                "scheme": {
+                    "type": "string"
+                },
+                "targets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/proxy-service_internal_models.TargetDTO"
+                    }
+                },
+                "timeout": {
+                    "type": "number"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "proxy-service_internal_models.TargetDTO": {
+            "type": "object",
+            "properties": {
+                "cache_interval": {
+                    "type": "string"
+                },
+                "method": {
+                    "type": "string"
                 },
                 "path": {
                     "type": "string"

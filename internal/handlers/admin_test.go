@@ -214,7 +214,8 @@ func TestCreateServiceDuplicate(t *testing.T) {
 		"host":"localhost:8081",
 		"timeout":10.0,
 		"retry_count":3,
-		"retry_interval":0.5
+		"retry_interval":0.5,
+		"targets":[]
 	}`)
 	req := httptest.NewRequest(http.MethodPost, "/service", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")

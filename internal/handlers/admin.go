@@ -65,39 +65,48 @@ func (h *AdminHandlers) GetService(c *gin.Context) {
 //	@Tags		Admin API
 //	@Accept		json
 //	@Produce	json
-//	@Param		request	body		models.ServiceDTO	true	"Service data (with targets)"
-//	@Success	200		{object}	MessageResponse		"Success"
-//	@Failure	400		{object}	MessageResponse		"Bad request"
-//	@Failure	409		{object}	MessageResponse		"Service already exists"
+//	@Param		request	body		createServiceRequest	true	"Service data (with targets)"
+//	@Success	200		{object}	MessageResponse			"Success"
+//	@Failure	400		{object}	MessageResponse			"Bad request"
+//	@Failure	409		{object}	MessageResponse			"Service already exists"
 //	@Router		/v1/service [post]
 func (h *AdminHandlers) CreateService(c *gin.Context) {
-	var request models.ServiceDTO
-
+	var request createServiceRequest
 	if err := c.BindJSON(&request); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, MessageResponse{Message: err.Error()})
 		return
 	}
-	if err := models.Validate.StructCtx(c.Request.Context(), request); err != nil {
+	if err := Validate.StructCtx(c.Request.Context(), request); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, MessageResponse{Message: fmt.Sprintf("Cannot parse query: %s", err.Error())})
 		return
 	}
-	for i := range request.Targets {
-		request.Targets[i].SortQuery()
+
+	serviceDTO := models.ServiceDTO{
+		Name:          *request.Name,
+		Scheme:        *request.Scheme,
+		Host:          *request.Host,
+		Timeout:       *request.Timeout,
+		RetryCount:    *request.RetryCount,
+		RetryInterval: *request.RetryInterval,
+		Version:       0,
+		Targets:       make([]models.TargetDTO, len(request.Targets)),
+	}
+	for i, t := range request.Targets {
+		targetDTO := models.TargetDTO{Path: *t.Path, Method: *t.Method, Query: *t.Query, CacheInterval: t.CacheInterval}
+		targetDTO.SortQuery()
+		serviceDTO.Targets[i] = targetDTO
 	}
 
-	request.Version = 0
-	service := models.ServiceDBModelFromDTO(request)
+	service := models.ServiceDBModelFromDTO(serviceDTO)
 	err := h.DBRepository.Create(c.Request.Context(), &service)
-	if errors.Is(err, database.ErrAlreadyExists) {
+	switch {
+	case err == nil:
+		c.IndentedJSON(http.StatusOK, MessageResponse{Message: "ok"})
+	case errors.Is(err, database.ErrAlreadyExists):
 		c.IndentedJSON(http.StatusConflict, MessageResponse{Message: fmt.Sprintf("Service '%s' already exists", service.Name)})
-		return
-	}
-	if err != nil {
+	default:
 		c.IndentedJSON(http.StatusInternalServerError, MessageResponse{Message: err.Error()})
-		return
 	}
-
-	c.IndentedJSON(http.StatusOK, MessageResponse{Message: "ok"})
 }
 
 // UpdateService godoc
@@ -106,48 +115,51 @@ func (h *AdminHandlers) CreateService(c *gin.Context) {
 //	@Tags		Admin API
 //	@Accept		json
 //	@Produce	json
-//	@Param		name	path		string				true	"Service name"
-//	@Param		request	body		models.ServiceDTO	true	"Service data (with targets)"
-//	@Success	200		{object}	MessageResponse		"Success"
-//	@Failure	400		{object}	MessageResponse		"Bad request"
-//	@Failure	404		{object}	MessageResponse		"Service not found"
+//	@Param		name	path		string					true	"Service name"
+//	@Param		request	body		updateServiceRequest	true	"Service data"
+//	@Success	200		{object}	MessageResponse			"Success"
+//	@Failure	400		{object}	MessageResponse			"Bad request"
+//	@Failure	404		{object}	MessageResponse			"Service not found"
 //	@Router		/v1/service/{name} [put]
 func (h *AdminHandlers) UpdateService(c *gin.Context) {
-	var request models.ServiceDTO
-
+	var request updateServiceRequest
 	if err := c.BindJSON(&request); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, MessageResponse{Message: err.Error()})
 		return
 	}
-	if err := models.Validate.StructCtx(c.Request.Context(), request); err != nil {
+	if err := Validate.StructCtx(c.Request.Context(), request); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, MessageResponse{Message: fmt.Sprintf("Cannot parse query: %s", err.Error())})
 		return
 	}
-	for i := range request.Targets {
-		request.Targets[i].SortQuery()
+
+	serviceDTO := models.ServiceDTO{
+		Name:          c.Param("name"),
+		Scheme:        *request.Scheme,
+		Host:          *request.Host,
+		Timeout:       *request.Timeout,
+		RetryCount:    *request.RetryCount,
+		RetryInterval: *request.RetryInterval,
+		Version:       *request.Version,
+		Targets:       make([]models.TargetDTO, len(request.Targets)),
+	}
+	for i, t := range request.Targets {
+		targetDTO := models.TargetDTO{Path: *t.Path, Method: *t.Method, Query: *t.Query, CacheInterval: t.CacheInterval}
+		targetDTO.SortQuery()
+		serviceDTO.Targets[i] = targetDTO
 	}
 
-	if request.Name != c.Param("name") {
-		c.IndentedJSON(http.StatusBadRequest, MessageResponse{Message: "Connot update name"})
-		return
-	}
-
-	service := models.ServiceDBModelFromDTO(request)
+	service := models.ServiceDBModelFromDTO(serviceDTO)
 	err := h.DBRepository.Update(c.Request.Context(), &service)
-	if errors.Is(err, database.ErrNotFound) {
+	switch {
+	case err == nil:
+		c.IndentedJSON(http.StatusOK, MessageResponse{Message: "ok"})
+	case errors.Is(err, database.ErrNotFound):
 		c.IndentedJSON(http.StatusNotFound, MessageResponse{Message: fmt.Sprintf("Service '%s' not found", c.Param("name"))})
-		return
-	}
-	if errors.Is(err, database.ErrVersionMismatch) {
+	case errors.Is(err, database.ErrVersionMismatch):
 		c.IndentedJSON(http.StatusConflict, MessageResponse{Message: err.Error()})
-		return
-	}
-	if err != nil {
+	default:
 		c.IndentedJSON(http.StatusInternalServerError, MessageResponse{Message: err.Error()})
-		return
 	}
-
-	c.IndentedJSON(http.StatusOK, MessageResponse{Message: "ok"})
 }
 
 // DeleteService godoc

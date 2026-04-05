@@ -1,4 +1,4 @@
-package models
+package handlers
 
 import (
 	"net/http"
@@ -21,7 +21,7 @@ func init() {
 		Validate.RegisterValidation("duration", validDuration)
 		Validate.RegisterValidation("query", validQuery)
 
-		Validate.RegisterStructValidation(validateTarget, TargetDTO{})
+		Validate.RegisterStructValidation(validateTarget, target{})
 	})
 }
 
@@ -46,10 +46,10 @@ func validQuery(fl validator.FieldLevel) bool {
 }
 
 func validateTarget(sl validator.StructLevel) {
-	target := sl.Current().Interface().(TargetDTO)
+	target := sl.Current().Interface().(target)
 
 	if target.CacheInterval != nil {
-		if target.Method != http.MethodGet {
+		if *target.Method != http.MethodGet {
 			sl.ReportError(
 				target.CacheInterval,
 				"CacheInterval",
@@ -58,7 +58,7 @@ func validateTarget(sl validator.StructLevel) {
 				"'cache_interval' can be set only for GET method",
 			)
 		}
-		if target.Query == "*" {
+		if *target.Query == "*" {
 			sl.ReportError(
 				target.CacheInterval,
 				"CacheInterval",
