@@ -13,13 +13,11 @@ import (
 
 type UserClaims struct {
 	CognitoGroups []string `json:"cognito:groups"`
-	Email         string   `json:"email"`
 }
 
 func AWSCognitoMiddleware(isDebugging bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if isDebugging {
-			c.Set("user_email", "mock@user.com")
 			c.Set("user_roles", []string{"proxy-service-admin-access", "proxy-service-proxy-access"})
 			c.Next()
 			return
@@ -45,7 +43,6 @@ func AWSCognitoMiddleware(isDebugging bool) gin.HandlerFunc {
 			return
 		}
 
-		c.Set("user_email", claims.Email)
 		c.Set("user_roles", claims.CognitoGroups)
 		c.Next()
 	}

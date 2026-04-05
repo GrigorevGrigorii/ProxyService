@@ -7,7 +7,6 @@ import (
 
 	"github.com/casbin/casbin/v2"
 	"github.com/gin-gonic/gin"
-	"github.com/rs/zerolog/log"
 )
 
 func AccessMiddleware(enforcer *casbin.Enforcer) gin.HandlerFunc {
@@ -44,12 +43,11 @@ func AccessMiddleware(enforcer *casbin.Enforcer) gin.HandlerFunc {
 			return
 		}
 
-		logSuccess(c)
 		c.Next()
 	}
 }
 
-func getUserRoles(c *gin.Context) ([]string, int, error) {
+func getUserRoles(c *gin.Context) (userRoles []string, errStatusCode int, err error) {
 	userRolesInterface, exists := c.Get("user_roles")
 	if !exists {
 		return nil, http.StatusUnauthorized, errors.New("No user roles found in context")
@@ -59,17 +57,4 @@ func getUserRoles(c *gin.Context) ([]string, int, error) {
 		return nil, http.StatusInternalServerError, errors.New("Invalid user roles format")
 	}
 	return userRoles, 0, nil
-}
-
-func logSuccess(c *gin.Context) {
-	emailInterface, exists := c.Get("user_email")
-	if !exists {
-		return
-	}
-	email, ok := emailInterface.(string)
-	if !ok {
-		return
-	}
-
-	log.Info().Msgf("User %s has enough permission to process request", email)
 }
