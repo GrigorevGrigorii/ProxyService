@@ -2,8 +2,8 @@ package middlewares
 
 import (
 	"net/http"
-	"strings"
 	"proxy-service/internal/utils"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"

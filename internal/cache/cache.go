@@ -39,10 +39,9 @@ func (r *CacheRepository) Get(ctx context.Context, service models.ServiceDTO, ta
 		return "", 0, "", errors.New("Data not found")
 	}
 
-	data, _ := redisResult["data"]
-	statusCodeStr, _ := redisResult["status_code"]
-	contentType, _ := redisResult["content_type"]
-	statusCode, err := strconv.Atoi(statusCodeStr)
+	data := redisResult["data"]
+	contentType := redisResult["content_type"]
+	statusCode, err := strconv.Atoi(redisResult["status_code"])
 	if err != nil {
 		return "", 0, "", err
 	}
