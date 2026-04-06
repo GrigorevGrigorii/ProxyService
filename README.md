@@ -1,114 +1,148 @@
-# ProxyService
+# Proxy Service
 
-This project was created **for educational purposes only**, as a playground to learn **Go** (HTTP routing, PostgreSQL integration, Redis caching, background task scheduling, and basic proxying with retries/timeouts).
+**This project was made for educational purposes.**  
+It demonstrates a production-grade microservices architecture in Go, including a configurable reverse proxy, background caching, RBAC authorization, database migrations, Redis queuing, and AWS deployment.
 
-## What it is
+---
 
-`ProxyService` is a lightweight API gateway that:
+## 📋 Overview
 
-- Exposes a proxy API under `/api/proxy/v1/...`
-- Allows proxying **only** to services/paths stored in PostgreSQL
-- Caches successful `GET` responses in Redis to reduce upstream load
-- Uses a background tasks to maintain cache freshness
-- Currently proxies **HTTP GET** with timeout, retries, and caching; other HTTP methods are scaffolded and return `not_implemented_error`
+A lightweight, configurable **reverse proxy service** with the following capabilities:
 
-For local testing, the repo includes `mock-api-server`.
-It also includes an `admin-api-server` for managing allowed services/targets in PostgreSQL.
+- **Admin API** – CRUD management of allowed upstream services and their proxy targets.
+- **Proxy API** – Forwards allowed HTTP requests (GET fully supported, others stubbed) to upstream services.
+- **Intelligent caching** – Automatic background caching of GET responses using Redis + periodic tasks (Asynq).
+- **Authentication & Authorization** – AWS Cognito (via ALB) + Casbin RBAC.
+- **Retry + timeout** logic per service.
+- **Fully observable** – Structured logging, request IDs, Swagger docs.
 
-## Architecture Overview
+Designed to run on **AWS ECS Fargate** with **Postgres** and **Redis Sentinel**, but easy to run locally via Docker Compose.
 
-- **Proxy Server** – handles client requests, caches responses, and forwards to upstream services.
-- **Admin Server** – CRUD for services and targets.
-- **Mock Server** – simple upstream for testing.
-- **PostgreSQL** – stores service definitions, targets, and configuration.
-- **Redis** – caches successful GET responses and stores background task data.
-- **Background Tasks** – periodically refreshes cache entries (e.g., for frequently accessed endpoints).
+## ✨ Features
 
-## API
+- **Dynamic configuration** of services/targets via Admin API
+- **Per-target caching** with configurable TTL (only for GET + specific query)
+- **Background worker** that pre-fills cache using Asynq periodic tasks + leader election
+- **Optimistic locking** on service updates (version field)
+- **Query parameter normalization** for cache keys
+- **Full Swagger/OpenAPI** documentation
+- **Health-check ready** (`/ping`)
+- **Production-ready** observability (Zerolog + request tracing)
+- **Local testing** with mock upstream + full Docker Compose stack
+- **CI/CD** ready (GitHub Actions for build/test + AWS deployment)
 
-### Proxy server
+## 🛠️ Tech Stack
 
-Base: `http://localhost:8080`
+| Layer              | Technology                              |
+|--------------------|-----------------------------------------|
+| Language           | Go 1.25                                 |
+| Web Framework      | Gin                                     |
+| ORM                | GORM v2                                 |
+| Database           | PostgreSQL + custom types/enums         |
+| Cache & Queue      | Redis + Asynq (periodic tasks)          |
+| Auth               | AWS Cognito + Casbin RBAC               |
+| API Docs           | Swaggo (Swagger 2.0)                    |
+| Logging            | Zerolog                                 |
+| Config             | Viper                                   |
+| Migrations         | golang-migrate                          |
+| Deployment         | AWS ECS Fargate + Lambda (migrations)   |
+| CI/CD              | GitHub Actions                          |
+| Local Dev          | Docker Compose                          |
 
-- `GET /ping` – health check
-- `GET /api/proxy/v1/:service/*path`
-  - Tries to get response from Redis cache
-  - Forwards the request to `service.scheme://service.host/:path` (query string preserved)
-  - Response status, headers, and body are passed through
-  - Only allowed if both `:service` and the `(method, path, query)` exist in PostgreSQL
-- `POST|PUT|DELETE /api/proxy/v1/:service/*path` – currently returns `not_implemented_error`
+## 🚀 Quick Start (Local)
 
-### Admin server
+### 1. Clone & prepare
 
-Base: `http://localhost:8082`
+```bash
+git clone <your-repo>
+cd proxy-service
+```
 
-- `GET /ping` – health check
-- Service CRUD:
-  - `GET /api/admin/v1/service`
-  - `GET /api/admin/v1/service/:name`
-  - `POST /api/admin/v1/service`
-  - `PUT /api/admin/v1/service/:name`
-  - `DELETE /api/admin/v1/service/:name`
+### 2. Start all services
+```bash
+make start-containers-with-build          # or make start-containers
+```
+This spins up:
+- Postgres
+- Redis (master + 2 replicas + 3 sentinels)
+- Proxy API (:8080)
+- Admin API (:8082)
+- Mock upstream (:8081)
+- Background worker & scheduler
 
-### Mock server
-
-Base: `http://localhost:8081`
-
-- `GET /ping` – health check
-- `GET|POST|PUT|DELETE /mock` – returns JSON with `{ method, query, body }`; used as upstream for testing
-
-## Configuration
-
-Configuration is defined in `configs/`. The files include settings for the proxy, admin, mock servers, PostgreSQL connections, Redis, and background tasks.
-
-## Caching and Background Tasks
-
-### How caching works
-
-- On a successful `GET` request, the proxy stores the response in Redis.
-- Subsequent identical requests are served from Redis.
-
-### Background tasks
-
-The scheduler periodically refreshes cache entries for services that have targets with `cache_interval is not null`. It:
-- Queries PostgreSQL for services with caching enabled
-- Fetches fresh responses from upstream and stores them in Redis
-- This ensures cache hits even when the upstream is temporarily slow or down.
-
-## Retries / Timeout behavior (GET)
-
-The proxy uses an internal HTTP client for GET requests:
-
-- Applies `timeout` via `http.Client{Timeout: ...}`
-- Retries when:
-  - request returns an error, or
-  - upstream responds with `502`, `503`, or `504`
-- Retries up to `retry_count` times with `retry_interval` between attempts
-
-## Database and Migrations
-
-PostgreSQL schema is defined in `internal/database/migrations`. To initialize the database locally:
-
+### 3. Run migrations
 ```bash
 make migrate-local
 ```
 
-## How to run
-### Local run (Docker Compose)
-```bash
-make start-containers-with-build
+## 📡 API Documentation
+
+### Admin API (port 8082)
+- **Base**: `/api/admin`
+- **Swagger**: http://localhost:8082/api/admin/swagger/index.html
+
+Endpoints:
+- `GET /v1/service` – List all services
+- `GET /v1/service/{name}` – Get service + targets
+- `POST /v1/service` – Create service
+- `PUT /v1/service/{name}` – Update service (with version)
+- `DELETE /v1/service/{name}` – Delete service
+
+### Proxy API (port 8080)
+- **Base**: `/api/proxy`
+- **Swagger**: http://localhost:8080/api/proxy/swagger/index.html
+
+Example usage:
+```http
+GET /api/proxy/v1/my-service/users?active=true
 ```
 
-This starts:
+## 🧪 Testing
 
-- `proxy` on `127.0.0.1:8080`
-- `mock` on `127.0.0.1:8081`
-- `admin` on `127.0.0.1:8082`
-- `postgres` on `5432`
-- `redis` on `6379`
-
-## Testing
-Run unit tests:
 ```bash
 make test
 ```
+
+Includes:
+- Unit tests for handlers, cache task, repository, validators, etc.
+- SQL mocking with go-sqlmock
+
+## 📦 Deployment
+
+The project includes ready-to-use AWS ECS task definitions and GitHub Actions workflows:
+
+- `.github/workflows/deploy_to_aws.yml` – Builds & deploys all microservices to ECS Fargate
+- `.github/workflows/migrate_db.yml` – Builds Lambda and runs DB migrations on every migration change
+
+See `deployments/aws-ecs-task-definitions/` and `build/package/Dockerfile`.
+
+## 📁 Project Structure (key folders)
+
+```
+proxy-service/
+├── cmd/                    # Entry points (proxy, admin, background, mock)
+├── internal/
+│   ├── database/           # GORM models, repository, migrations
+│   ├── handlers/           # Gin handlers + validation
+│   ├── cache/              # Redis cache layer
+│   ├── background/         # Asynq tasks & leader election
+│   ├── httpclient/         # Retry-enabled HTTP client
+│   ├── middlewares/        # Auth, logging, request ID
+│   ├── models/             # DTOs & converters
+│   └── config/             # Viper config loading
+├── configs/                # YAML configs + Casbin policy
+├── api/*/docs/             # Generated Swagger
+├── deployments/            # AWS ECS definitions
+├── test/                   # docker-compose.yaml
+├── Makefile
+└── go.mod
+```
+
+## 🔧 Configuration
+
+All services read from `configs/*.yaml` (overridable via environment variables).  
+Example environment variables are already set in Docker Compose and ECS task definitions.
+
+## Contributing
+
+This is an **educational project**. Feel free to fork, experiment, and improve it!
