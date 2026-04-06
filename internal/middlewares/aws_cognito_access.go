@@ -1,22 +1,23 @@
 package middlewares
 
 import (
-	"encoding/base64"
-	"encoding/json"
-	"errors"
 	"net/http"
 	"strings"
+	"proxy-service/internal/utils"
 
 	"github.com/gin-gonic/gin"
-	"github.com/rs/zerolog/log"
+	"github.com/golang-jwt/jwt"
 )
 
 type UserClaims struct {
 	CognitoGroups []string `json:"cognito:groups"`
+	jwt.StandardClaims
 }
 
 func AWSCognitoMiddleware(isDebugging bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		log := utils.GetLogger(c.Request.Context())
+
 		if isDebugging {
 			c.Set("user_roles", []string{"proxy-service-admin-access", "proxy-service-proxy-access"})
 			c.Next()
@@ -49,26 +50,16 @@ func AWSCognitoMiddleware(isDebugging bool) gin.HandlerFunc {
 }
 
 func decodeUserClaims(oidcData string) (*UserClaims, error) {
-	parts := strings.Split(oidcData, ".")
-	if len(parts) != 3 {
-		return nil, errors.New("invalid JWT format")
-	}
-
-	payload := parts[1]
-
-	if l := len(payload) % 4; l > 0 {
-		payload += strings.Repeat("=", 4-l)
-	}
-
-	decoded, err := base64.URLEncoding.DecodeString(payload)
+	// it has already been validated by the ALB itself, so skipping signature validation is acceptable in this context
+	parser := jwt.Parser{SkipClaimsValidation: true}
+	token, _, err := parser.ParseUnverified(oidcData, &UserClaims{})
 	if err != nil {
 		return nil, err
 	}
 
-	var claims UserClaims
-	if err := json.Unmarshal(decoded, &claims); err != nil {
-		return nil, err
+	if claims, ok := token.Claims.(*UserClaims); ok {
+		return claims, nil
 	}
 
-	return &claims, nil
+	return nil, jwt.ErrInvalidKey
 }
