@@ -24,7 +24,7 @@ type AdminHandlers struct {
 func (h *AdminHandlers) GetServices(c *gin.Context) {
 	services, err := h.DBRepository.GetAll(c.Request.Context())
 	if err != nil {
-		c.IndentedJSON(http.StatusInternalServerError, MessageResponse{Message: err.Error()})
+		c.JSON(http.StatusInternalServerError, MessageResponse{Message: err.Error()})
 		return
 	}
 
@@ -33,7 +33,7 @@ func (h *AdminHandlers) GetServices(c *gin.Context) {
 		response[i] = models.ServiceDTOFromDBModel(service)
 	}
 
-	c.IndentedJSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, response)
 }
 
 // GetService godoc
@@ -48,15 +48,15 @@ func (h *AdminHandlers) GetServices(c *gin.Context) {
 func (h *AdminHandlers) GetService(c *gin.Context) {
 	service, err := h.DBRepository.Get(c.Request.Context(), c.Param("name"))
 	if errors.Is(err, database.ErrNotFound) {
-		c.IndentedJSON(http.StatusNotFound, MessageResponse{Message: fmt.Sprintf("Service '%s' not found", c.Param("name"))})
+		c.JSON(http.StatusNotFound, MessageResponse{Message: fmt.Sprintf("Service '%s' not found", c.Param("name"))})
 		return
 	}
 	if err != nil {
-		c.IndentedJSON(http.StatusInternalServerError, MessageResponse{Message: err.Error()})
+		c.JSON(http.StatusInternalServerError, MessageResponse{Message: err.Error()})
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, models.ServiceDTOFromDBModel(*service))
+	c.JSON(http.StatusOK, models.ServiceDTOFromDBModel(*service))
 }
 
 // CreateService godoc
@@ -73,11 +73,11 @@ func (h *AdminHandlers) GetService(c *gin.Context) {
 func (h *AdminHandlers) CreateService(c *gin.Context) {
 	var request createServiceRequest
 	if err := c.BindJSON(&request); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, MessageResponse{Message: err.Error()})
+		c.JSON(http.StatusBadRequest, MessageResponse{Message: err.Error()})
 		return
 	}
 	if err := Validate.StructCtx(c.Request.Context(), request); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, MessageResponse{Message: fmt.Sprintf("Cannot parse query: %s", err.Error())})
+		c.JSON(http.StatusBadRequest, MessageResponse{Message: fmt.Sprintf("Cannot parse query: %s", err.Error())})
 		return
 	}
 
@@ -101,11 +101,11 @@ func (h *AdminHandlers) CreateService(c *gin.Context) {
 	err := h.DBRepository.Create(c.Request.Context(), &service)
 	switch {
 	case err == nil:
-		c.IndentedJSON(http.StatusOK, MessageResponse{Message: "ok"})
+		c.JSON(http.StatusOK, MessageResponse{Message: "ok"})
 	case errors.Is(err, database.ErrAlreadyExists):
-		c.IndentedJSON(http.StatusConflict, MessageResponse{Message: fmt.Sprintf("Service '%s' already exists", service.Name)})
+		c.JSON(http.StatusConflict, MessageResponse{Message: fmt.Sprintf("Service '%s' already exists", service.Name)})
 	default:
-		c.IndentedJSON(http.StatusInternalServerError, MessageResponse{Message: err.Error()})
+		c.JSON(http.StatusInternalServerError, MessageResponse{Message: err.Error()})
 	}
 }
 
@@ -124,11 +124,11 @@ func (h *AdminHandlers) CreateService(c *gin.Context) {
 func (h *AdminHandlers) UpdateService(c *gin.Context) {
 	var request updateServiceRequest
 	if err := c.BindJSON(&request); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, MessageResponse{Message: err.Error()})
+		c.JSON(http.StatusBadRequest, MessageResponse{Message: err.Error()})
 		return
 	}
 	if err := Validate.StructCtx(c.Request.Context(), request); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, MessageResponse{Message: fmt.Sprintf("Cannot parse query: %s", err.Error())})
+		c.JSON(http.StatusBadRequest, MessageResponse{Message: fmt.Sprintf("Cannot parse query: %s", err.Error())})
 		return
 	}
 
@@ -152,13 +152,13 @@ func (h *AdminHandlers) UpdateService(c *gin.Context) {
 	err := h.DBRepository.Update(c.Request.Context(), &service)
 	switch {
 	case err == nil:
-		c.IndentedJSON(http.StatusOK, MessageResponse{Message: "ok"})
+		c.JSON(http.StatusOK, MessageResponse{Message: "ok"})
 	case errors.Is(err, database.ErrNotFound):
-		c.IndentedJSON(http.StatusNotFound, MessageResponse{Message: fmt.Sprintf("Service '%s' not found", c.Param("name"))})
+		c.JSON(http.StatusNotFound, MessageResponse{Message: fmt.Sprintf("Service '%s' not found", c.Param("name"))})
 	case errors.Is(err, database.ErrVersionMismatch):
-		c.IndentedJSON(http.StatusConflict, MessageResponse{Message: err.Error()})
+		c.JSON(http.StatusConflict, MessageResponse{Message: err.Error()})
 	default:
-		c.IndentedJSON(http.StatusInternalServerError, MessageResponse{Message: err.Error()})
+		c.JSON(http.StatusInternalServerError, MessageResponse{Message: err.Error()})
 	}
 }
 
@@ -173,8 +173,8 @@ func (h *AdminHandlers) UpdateService(c *gin.Context) {
 func (h *AdminHandlers) DeleteService(c *gin.Context) {
 	err := h.DBRepository.Delete(c.Request.Context(), c.Param("name"))
 	if err != nil {
-		c.IndentedJSON(http.StatusInternalServerError, MessageResponse{Message: err.Error()})
+		c.JSON(http.StatusInternalServerError, MessageResponse{Message: err.Error()})
 		return
 	}
-	c.IndentedJSON(http.StatusOK, MessageResponse{Message: "ok"})
+	c.JSON(http.StatusOK, MessageResponse{Message: "ok"})
 }
