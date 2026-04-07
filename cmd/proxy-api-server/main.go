@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"proxy-service/api/proxy-api-server/docs"
+	"proxy-service/internal/auth"
 	"proxy-service/internal/cache"
 	"proxy-service/internal/config"
 	"proxy-service/internal/database"
@@ -81,7 +82,7 @@ func main() {
 	}))
 	router.Use(middlewares.RequestIDMiddleware())
 	router.Use(middlewares.ZerologMiddleware())
-	router.Use(middlewares.AWSCognitoMiddleware(gin.IsDebugging()))
+	router.Use(middlewares.AuthMiddleware(gin.IsDebugging(), auth.AWSCognitoAuthChecker{}))
 	router.Use(middlewares.AccessMiddleware(casbinEnforcer))
 
 	// Swagger
