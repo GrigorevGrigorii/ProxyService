@@ -1,17 +1,13 @@
 package middlewares
 
 import (
+	"proxy-service/internal/auth"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
-type AuthChecker interface {
-	Check(c *gin.Context) (roles []string, errStatusCode int, err error)
-	GetDebaggingRoles() []string
-}
-
-func AuthMiddleware(IsDebugging bool, checker AuthChecker) gin.HandlerFunc {
+func AuthMiddleware(IsDebugging bool, checker auth.AuthChecker) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if strings.HasSuffix(c.Request.URL.Path, "/ping") {
 			c.Next()

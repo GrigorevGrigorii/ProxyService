@@ -9,12 +9,12 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
-type UserClaims struct {
+type userClaims struct {
 	CognitoGroups []string `json:"cognito:groups"`
 }
 
 // it has already been validated by the ALB itself, so skipping signature validation is acceptable in this context
-func (c UserClaims) Valid() error { return nil }
+func (c userClaims) Valid() error { return nil }
 
 type AWSCognitoAuthChecker struct{}
 
@@ -39,14 +39,14 @@ func (ac AWSCognitoAuthChecker) Check(c *gin.Context) (roles []string, errStatus
 	return claims.CognitoGroups, 0, nil
 }
 
-func (ac AWSCognitoAuthChecker) decodeUserClaims(oidcData string) (*UserClaims, error) {
+func (ac AWSCognitoAuthChecker) decodeUserClaims(oidcData string) (*userClaims, error) {
 	parser := jwt.Parser{SkipClaimsValidation: true}
-	token, _, err := parser.ParseUnverified(oidcData, &UserClaims{})
+	token, _, err := parser.ParseUnverified(oidcData, &userClaims{})
 	if err != nil {
 		return nil, err
 	}
 
-	if claims, ok := token.Claims.(*UserClaims); ok {
+	if claims, ok := token.Claims.(*userClaims); ok {
 		return claims, nil
 	}
 
