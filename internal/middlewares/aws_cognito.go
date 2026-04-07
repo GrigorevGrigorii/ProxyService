@@ -11,8 +11,10 @@ import (
 
 type UserClaims struct {
 	CognitoGroups []string `json:"cognito:groups"`
-	jwt.StandardClaims
 }
+
+// it has already been validated by the ALB itself, so skipping signature validation is acceptable in this context
+func (c UserClaims) Valid() error { return nil }
 
 func AWSCognitoMiddleware(isDebugging bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -50,7 +52,6 @@ func AWSCognitoMiddleware(isDebugging bool) gin.HandlerFunc {
 }
 
 func decodeUserClaims(oidcData string) (*UserClaims, error) {
-	// it has already been validated by the ALB itself, so skipping signature validation is acceptable in this context
 	parser := jwt.Parser{SkipClaimsValidation: true}
 	token, _, err := parser.ParseUnverified(oidcData, &UserClaims{})
 	if err != nil {
