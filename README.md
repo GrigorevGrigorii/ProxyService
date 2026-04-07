@@ -122,6 +122,7 @@ See `deployments/aws-ecs-task-definitions/` and `build/package/Dockerfile`.
 proxy-service/
 ├── cmd/                    # Entry points (proxy, admin, background, mock)
 ├── internal/
+│   ├── auth/               # Auth checkers for AuthMiddleware (contains only AWS Cognito as example)
 │   ├── database/           # GORM models, repository, migrations
 │   ├── handlers/           # Gin handlers + validation
 │   ├── cache/              # Redis cache layer
