@@ -2,41 +2,43 @@ package auth
 
 import (
 	"errors"
-	"net/http"
 	"proxy-service/internal/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 )
 
+var awsCognitoDebuggingRoles = []string{"proxy-service-admin-access", "proxy-service-proxy-access"}
+
 type userClaims struct {
 	CognitoGroups []string `json:"cognito:groups"`
 }
 
-// it has already been validated by the ALB itself, so skipping signature validation is acceptable in this context
-func (c userClaims) Valid() error { return nil }
+func (c userClaims) Valid() error { return nil } // it has already been validated by the ALB itself, so skipping signature validation is acceptable in this context
 
-type AWSCognitoAuthChecker struct{}
-
-func (ac AWSCognitoAuthChecker) GetDebaggingRoles() []string {
-	return []string{"proxy-service-admin-access", "proxy-service-proxy-access"}
+type AWSCognitoAuthChecker struct {
+	IsDebugging bool
 }
 
-func (ac AWSCognitoAuthChecker) Check(c *gin.Context) (roles []string, errStatusCode int, err error) {
+func (ac AWSCognitoAuthChecker) Check(c *gin.Context) (roles []string, err error) {
+	if ac.IsDebugging {
+		return awsCognitoDebuggingRoles, nil
+	}
+
 	log := utils.GetLogger(c.Request.Context())
 
 	oidcData := c.GetHeader("X-Amzn-Oidc-Accesstoken")
 	if oidcData == "" {
-		return nil, http.StatusUnauthorized, errors.New("No authentication data provided")
+		return nil, errors.New("No authentication data provided")
 	}
 
 	claims, err := ac.decodeUserClaims(oidcData)
 	if err != nil {
 		log.Error().Msgf("Got error while decoding AWS user claims: %s", err.Error())
-		return nil, http.StatusUnauthorized, errors.New("Invalid authentication data")
+		return nil, errors.New("Invalid authentication data")
 	}
 
-	return claims.CognitoGroups, 0, nil
+	return claims.CognitoGroups, nil
 }
 
 func (ac AWSCognitoAuthChecker) decodeUserClaims(oidcData string) (*userClaims, error) {

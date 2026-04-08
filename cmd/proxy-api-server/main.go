@@ -82,7 +82,7 @@ func main() {
 	}))
 	router.Use(middlewares.RequestIDMiddleware())
 	router.Use(middlewares.ZerologMiddleware())
-	router.Use(middlewares.AuthMiddleware(gin.IsDebugging(), auth.AWSCognitoAuthChecker{}))
+	router.Use(middlewares.AuthMiddleware(auth.AWSCognitoAuthChecker{IsDebugging: gin.IsDebugging()}))
 	router.Use(middlewares.AccessMiddleware(casbinEnforcer))
 
 	// Swagger
