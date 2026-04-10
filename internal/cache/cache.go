@@ -15,11 +15,11 @@ type Repository interface {
 	Get(ctx context.Context, service models.ServiceDTO, target models.TargetDTO) (string, int, string, error)
 }
 
-type CacheRepository struct {
+type RedisRepository struct {
 	Redis *redis.UniversalClient
 }
 
-func (r *CacheRepository) Set(ctx context.Context, service models.ServiceDTO, target models.TargetDTO, data string, statusCode int, contentType string) error {
+func (r *RedisRepository) Set(ctx context.Context, service models.ServiceDTO, target models.TargetDTO, data string, statusCode int, contentType string) error {
 	return (*r.Redis).HSet(
 		ctx, cacheKey(service, target),
 		map[string]any{
@@ -30,7 +30,7 @@ func (r *CacheRepository) Set(ctx context.Context, service models.ServiceDTO, ta
 	).Err()
 }
 
-func (r *CacheRepository) Get(ctx context.Context, service models.ServiceDTO, target models.TargetDTO) (string, int, string, error) {
+func (r *RedisRepository) Get(ctx context.Context, service models.ServiceDTO, target models.TargetDTO) (string, int, string, error) {
 	redisResult, err := (*r.Redis).HGetAll(ctx, cacheKey(service, target)).Result()
 	if err != nil {
 		return "", 0, "", err
