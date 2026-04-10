@@ -44,9 +44,7 @@ func (h *ProxyHandlers) ProxyGetRequest(c *gin.Context) {
 	target := service.Targets[0]
 
 	if target.CacheInterval != nil {
-		data, statusCode, contentType, err := h.CacheRepository.Get(
-			c.Request.Context(), models.ServiceDTOFromDBModel(*service), models.TargetDTOFromDBModel(target),
-		)
+		data, statusCode, contentType, err := h.CacheRepository.Get(c.Request.Context(), *service, target)
 		if err == nil {
 			log.Info().Msgf("Use cache response for %s, %s, %s, %s", service.Name, target.Path, http.MethodGet, target.Query)
 			c.Data(statusCode, contentType, []byte(data))
@@ -143,7 +141,7 @@ func (h *ProxyHandlers) ProxyDeleteRequest(c *gin.Context) {
 	c.JSON(http.StatusNotImplemented, MessageResponse{Message: "not_implemented_error"})
 }
 
-func (h *ProxyHandlers) getAllowedService(ctx context.Context, service, method, path, query string) (*database.Service, error) {
+func (h *ProxyHandlers) getAllowedService(ctx context.Context, service, method, path, query string) (*models.ServiceDTO, error) {
 	allowedService, err := h.DBRepository.GetFiltered(ctx, service, path, method, query)
 	if err != nil {
 		return nil, err

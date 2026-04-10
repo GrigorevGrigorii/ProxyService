@@ -29,7 +29,7 @@ func (p *DynamicProvider) GetConfigs() ([]*asynq.PeriodicTaskConfig, error) {
 				continue
 			}
 
-			payload, err := getPayload(models.ServiceDTOFromDBModel(service), models.TargetDTOFromDBModel(target))
+			payload, err := getPayload(service, target)
 			if err != nil {
 				return nil, err
 			}

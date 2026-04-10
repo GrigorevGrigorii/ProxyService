@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql/driver"
 	"errors"
+	"proxy-service/internal/models"
 	"regexp"
 	"testing"
 
@@ -141,7 +142,7 @@ func TestDBRepositoryCreateDuplicate(t *testing.T) {
 		WillReturnError(gorm.ErrDuplicatedKey)
 	mock.ExpectRollback()
 
-	err := repo.Create(context.Background(), &Service{
+	err := repo.Create(context.Background(), &models.ServiceDTO{
 		Name:          "mock",
 		Scheme:        "http",
 		Host:          "localhost:8081",
@@ -168,7 +169,7 @@ func TestDBRepositoryUpdateVersionMismatch(t *testing.T) {
 		}).AddRow("mock", "http", "localhost:8081", 10.0, 2, 0.5, 3))
 	mock.ExpectRollback()
 
-	err := repo.Update(context.Background(), &Service{
+	err := repo.Update(context.Background(), &models.ServiceDTO{
 		Name:          "mock",
 		Scheme:        "http",
 		Host:          "localhost:8081",
@@ -176,7 +177,7 @@ func TestDBRepositoryUpdateVersionMismatch(t *testing.T) {
 		RetryCount:    3,
 		RetryInterval: 0.5,
 		Version:       2,
-		Targets:       []Target{{Path: "/new", Method: "GET"}},
+		Targets:       []models.TargetDTO{{Path: "/new", Method: "GET"}},
 	})
 	if !errors.Is(err, ErrVersionMismatch) {
 		t.Fatalf("expected ErrVersionMismatch, got %v", err)

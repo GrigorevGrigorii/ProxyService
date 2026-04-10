@@ -28,12 +28,7 @@ func (h *AdminHandlers) GetServices(c *gin.Context) {
 		return
 	}
 
-	response := make([]models.ServiceDTO, len(services))
-	for i, service := range services {
-		response[i] = models.ServiceDTOFromDBModel(service)
-	}
-
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, services)
 }
 
 // GetService godoc
@@ -56,7 +51,7 @@ func (h *AdminHandlers) GetService(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, models.ServiceDTOFromDBModel(*service))
+	c.JSON(http.StatusOK, *service)
 }
 
 // CreateService godoc
@@ -81,7 +76,7 @@ func (h *AdminHandlers) CreateService(c *gin.Context) {
 		return
 	}
 
-	serviceDTO := models.ServiceDTO{
+	service := models.ServiceDTO{
 		Name:          *request.Name,
 		Scheme:        *request.Scheme,
 		Host:          *request.Host,
@@ -94,10 +89,9 @@ func (h *AdminHandlers) CreateService(c *gin.Context) {
 	for i, t := range request.Targets {
 		targetDTO := models.TargetDTO{Path: *t.Path, Method: *t.Method, Query: *t.Query, CacheInterval: t.CacheInterval}
 		targetDTO.SortQuery()
-		serviceDTO.Targets[i] = targetDTO
+		service.Targets[i] = targetDTO
 	}
 
-	service := models.ServiceDBModelFromDTO(serviceDTO)
 	err := h.DBRepository.Create(c.Request.Context(), &service)
 	switch {
 	case err == nil:
@@ -132,7 +126,7 @@ func (h *AdminHandlers) UpdateService(c *gin.Context) {
 		return
 	}
 
-	serviceDTO := models.ServiceDTO{
+	service := models.ServiceDTO{
 		Name:          c.Param("name"),
 		Scheme:        *request.Scheme,
 		Host:          *request.Host,
@@ -145,10 +139,9 @@ func (h *AdminHandlers) UpdateService(c *gin.Context) {
 	for i, t := range request.Targets {
 		targetDTO := models.TargetDTO{Path: *t.Path, Method: *t.Method, Query: *t.Query, CacheInterval: t.CacheInterval}
 		targetDTO.SortQuery()
-		serviceDTO.Targets[i] = targetDTO
+		service.Targets[i] = targetDTO
 	}
 
-	service := models.ServiceDBModelFromDTO(serviceDTO)
 	err := h.DBRepository.Update(c.Request.Context(), &service)
 	switch {
 	case err == nil:

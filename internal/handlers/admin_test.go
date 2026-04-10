@@ -15,51 +15,51 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type stubAdminRepository struct {
-	getAllFn func(ctx context.Context) ([]database.Service, error)
-	getFn    func(ctx context.Context, name string) (*database.Service, error)
-	createFn func(ctx context.Context, service *database.Service) error
-	updateFn func(ctx context.Context, service *database.Service) error
+type stubAdminDBRepository struct {
+	getAllFn func(ctx context.Context) ([]models.ServiceDTO, error)
+	getFn    func(ctx context.Context, name string) (*models.ServiceDTO, error)
+	createFn func(ctx context.Context, service *models.ServiceDTO) error
+	updateFn func(ctx context.Context, service *models.ServiceDTO) error
 	deleteFn func(ctx context.Context, name string) error
 }
 
-func (s *stubAdminRepository) GetAll(ctx context.Context) ([]database.Service, error) {
+func (s *stubAdminDBRepository) GetAll(ctx context.Context) ([]models.ServiceDTO, error) {
 	if s.getAllFn == nil {
 		return nil, errors.New("unexpected GetAll call")
 	}
 	return s.getAllFn(ctx)
 }
 
-func (s *stubAdminRepository) Get(ctx context.Context, name string) (*database.Service, error) {
+func (s *stubAdminDBRepository) Get(ctx context.Context, name string) (*models.ServiceDTO, error) {
 	if s.getFn == nil {
 		return nil, errors.New("unexpected Get call")
 	}
 	return s.getFn(ctx, name)
 }
 
-func (s *stubAdminRepository) GetFiltered(ctx context.Context, name, path, method, query string) (*database.Service, error) {
+func (s *stubAdminDBRepository) GetFiltered(ctx context.Context, name, path, method, query string) (*models.ServiceDTO, error) {
 	return nil, errors.New("unexpected GetFiltered call")
 }
 
-func (s *stubAdminRepository) GetForCaching(ctx context.Context) ([]database.Service, error) {
+func (s *stubAdminDBRepository) GetForCaching(ctx context.Context) ([]models.ServiceDTO, error) {
 	return nil, errors.New("unexpected GetForCaching call")
 }
 
-func (s *stubAdminRepository) Create(ctx context.Context, service *database.Service) error {
+func (s *stubAdminDBRepository) Create(ctx context.Context, service *models.ServiceDTO) error {
 	if s.createFn == nil {
 		return errors.New("unexpected Create call")
 	}
 	return s.createFn(ctx, service)
 }
 
-func (s *stubAdminRepository) Update(ctx context.Context, service *database.Service) error {
+func (s *stubAdminDBRepository) Update(ctx context.Context, service *models.ServiceDTO) error {
 	if s.updateFn == nil {
 		return errors.New("unexpected Update call")
 	}
 	return s.updateFn(ctx, service)
 }
 
-func (s *stubAdminRepository) Delete(ctx context.Context, name string) error {
+func (s *stubAdminDBRepository) Delete(ctx context.Context, name string) error {
 	if s.deleteFn == nil {
 		return errors.New("unexpected Delete call")
 	}
@@ -79,9 +79,9 @@ func setupAdminTest(repo database.Repository) *gin.Engine {
 }
 
 func TestGetServices(t *testing.T) {
-	router := setupAdminTest(&stubAdminRepository{
-		getAllFn: func(ctx context.Context) ([]database.Service, error) {
-			return []database.Service{
+	router := setupAdminTest(&stubAdminDBRepository{
+		getAllFn: func(ctx context.Context) ([]models.ServiceDTO, error) {
+			return []models.ServiceDTO{
 				{
 					Name:          "mock",
 					Scheme:        "http",
@@ -90,8 +90,8 @@ func TestGetServices(t *testing.T) {
 					RetryCount:    3,
 					RetryInterval: 0.1,
 					Version:       1,
-					Targets: []database.Target{
-						{ServiceName: "mock", Path: "/mock", Method: "GET", Query: "query=param"},
+					Targets: []models.TargetDTO{
+						{Path: "/mock", Method: "GET", Query: "query=param"},
 					},
 				},
 			}, nil
@@ -130,8 +130,8 @@ func TestGetServices(t *testing.T) {
 }
 
 func TestGetServiceNotFound(t *testing.T) {
-	router := setupAdminTest(&stubAdminRepository{
-		getFn: func(ctx context.Context, name string) (*database.Service, error) {
+	router := setupAdminTest(&stubAdminDBRepository{
+		getFn: func(ctx context.Context, name string) (*models.ServiceDTO, error) {
 			if name != "missing" {
 				t.Fatalf("expected service name %q, got %q", "missing", name)
 			}
@@ -149,12 +149,12 @@ func TestGetServiceNotFound(t *testing.T) {
 }
 
 func TestGetService(t *testing.T) {
-	router := setupAdminTest(&stubAdminRepository{
-		getFn: func(ctx context.Context, name string) (*database.Service, error) {
+	router := setupAdminTest(&stubAdminDBRepository{
+		getFn: func(ctx context.Context, name string) (*models.ServiceDTO, error) {
 			if name != "mock" {
 				t.Fatalf("expected service name %q, got %q", "mock", name)
 			}
-			return &database.Service{
+			return &models.ServiceDTO{
 				Name:          "mock",
 				Scheme:        "http",
 				Host:          "localhost:8080",
@@ -162,8 +162,8 @@ func TestGetService(t *testing.T) {
 				RetryCount:    0,
 				RetryInterval: 0,
 				Version:       1,
-				Targets: []database.Target{
-					{ServiceName: "mock", Path: "/mock", Method: "GET", Query: "query=param"},
+				Targets: []models.TargetDTO{
+					{Path: "/mock", Method: "GET", Query: "query=param"},
 				},
 			}, nil
 		},
@@ -199,8 +199,8 @@ func TestGetService(t *testing.T) {
 }
 
 func TestCreateServiceDuplicate(t *testing.T) {
-	router := setupAdminTest(&stubAdminRepository{
-		createFn: func(ctx context.Context, service *database.Service) error {
+	router := setupAdminTest(&stubAdminDBRepository{
+		createFn: func(ctx context.Context, service *models.ServiceDTO) error {
 			if service.Name != "mock" {
 				t.Fatalf("unexpected service name: %s", service.Name)
 			}
@@ -228,8 +228,8 @@ func TestCreateServiceDuplicate(t *testing.T) {
 }
 
 func TestUpdateServiceVersionMismatch(t *testing.T) {
-	router := setupAdminTest(&stubAdminRepository{
-		updateFn: func(ctx context.Context, service *database.Service) error {
+	router := setupAdminTest(&stubAdminDBRepository{
+		updateFn: func(ctx context.Context, service *models.ServiceDTO) error {
 			if service.Name != "mock" {
 				t.Fatalf("unexpected service name: %s", service.Name)
 			}
@@ -258,7 +258,7 @@ func TestUpdateServiceVersionMismatch(t *testing.T) {
 }
 
 func TestDeleteService(t *testing.T) {
-	router := setupAdminTest(&stubAdminRepository{
+	router := setupAdminTest(&stubAdminDBRepository{
 		deleteFn: func(ctx context.Context, name string) error {
 			if name != "mock" {
 				t.Fatalf("expected service name %q, got %q", "mock", name)
