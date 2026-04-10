@@ -87,7 +87,7 @@ func (h *ProxyHandlers) ProxyGetRequest(c *gin.Context) {
 //	@Param			path	path	string	true	"Path of target to proxy"
 //	@Router			/v1/{service}/{path} [post]
 func (h *ProxyHandlers) ProxyPostRequest(c *gin.Context) {
-	_, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"), "")
+	_, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodPost, c.Param("path"), "")
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusForbidden, MessageResponse{Message: "service, path or query params are not allowed"})
 		return
@@ -108,7 +108,7 @@ func (h *ProxyHandlers) ProxyPostRequest(c *gin.Context) {
 //	@Param			path	path	string	true	"Path of target to proxy"
 //	@Router			/v1/{service}/{path} [put]
 func (h *ProxyHandlers) ProxyPutRequest(c *gin.Context) {
-	_, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"), "")
+	_, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodPut, c.Param("path"), "")
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusForbidden, MessageResponse{Message: "service, path or query params are not allowed"})
 		return
@@ -129,7 +129,7 @@ func (h *ProxyHandlers) ProxyPutRequest(c *gin.Context) {
 //	@Param			path	path	string	true	"Path of target to proxy"
 //	@Router			/v1/{service}/{path} [delete]
 func (h *ProxyHandlers) ProxyDeleteRequest(c *gin.Context) {
-	_, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"), "")
+	_, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodDelete, c.Param("path"), "")
 	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusForbidden, MessageResponse{Message: "service, path or query params are not allowed"})
 		return
