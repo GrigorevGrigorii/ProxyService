@@ -4,87 +4,56 @@ import (
 	"context"
 	"net/http"
 	"proxy-service/internal/utils"
+	"sync"
 	"time"
+
+	"github.com/hashicorp/go-retryablehttp"
 )
 
+var (
+	sharedTransport *http.Transport
+	transportOnce   sync.Once
+)
+
+func getSharedTransport() *http.Transport {
+	transportOnce.Do(func() {
+		sharedTransport = &http.Transport{
+			MaxIdleConns:        100,
+			MaxIdleConnsPerHost: 10,
+			IdleConnTimeout:     90 * time.Second,
+		}
+	})
+	return sharedTransport
+}
+
+func newRetryableClient(ctx context.Context, timeout time.Duration, retryCount int, retryInterval time.Duration) *retryablehttp.Client {
+	var logger retryablehttp.LeveledLogger = &retryableHTTPLeveledLoggerAgapter{logger: utils.GetLogger(ctx)}
+	return &retryablehttp.Client{
+		HTTPClient: &http.Client{
+			Timeout:   timeout,
+			Transport: getSharedTransport(),
+		},
+		Logger:       logger,
+		RetryMax:     retryCount,
+		RetryWaitMin: retryInterval,
+		RetryWaitMax: retryInterval,
+		CheckRetry:   retryablehttp.DefaultRetryPolicy,
+		Backoff:      retryablehttp.DefaultBackoff,
+	}
+}
+
 type HTTPClient interface {
-	Get(ctx context.Context, url string, timeout time.Duration, retryCount uint8, retryInterval time.Duration) (resp *http.Response, err error)
+	Get(ctx context.Context, url string, timeout time.Duration, retryCount int, retryInterval time.Duration) (resp *http.Response, err error)
 }
 
 type Client struct{}
 
-func (c *Client) Get(ctx context.Context, url string, timeout time.Duration, retryCount uint8, retryInterval time.Duration) (*http.Response, error) {
-	log := utils.GetLogger(ctx)
+func (c *Client) Get(ctx context.Context, url string, timeout time.Duration, retryCount int, retryInterval time.Duration) (*http.Response, error) {
+	retryableClient := newRetryableClient(ctx, timeout, retryCount, retryInterval)
 
-	var reqErr error
-	var resp *http.Response
-	var currentRetryCount uint8 = 0
-	httpClient := &http.Client{Timeout: timeout}
-
-	for {
-		if err := ctx.Err(); err != nil {
-			return nil, err
-		}
-
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-		if err != nil {
-			return nil, err
-		}
-
-		log.Info().Msgf("Making GET request to %s", url)
-		resp, reqErr = httpClient.Do(req)
-		if reqErr != nil {
-			log.Error().Msgf("Error while making request to %s: %s", url, reqErr.Error())
-		} else if resp.StatusCode >= 400 {
-			log.Error().Msgf("Error %d while making request to %s", resp.StatusCode, url)
-		}
-
-		if currentRetryCount < retryCount-1 && (reqErr != nil || shouldRetry(resp)) {
-
-			if resp != nil {
-				resp.Body.Close()
-			}
-			currentRetryCount++
-			if err := waitRetry(ctx, retryInterval); err != nil {
-				return nil, err
-			}
-		} else {
-			break
-		}
+	req, err := retryablehttp.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return nil, err
 	}
-
-	return resp, reqErr
-}
-
-func waitRetry(ctx context.Context, d time.Duration) error {
-	if d <= 0 {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
-			return nil
-		}
-	}
-	t := time.NewTimer(d)
-	select {
-	case <-t.C:
-		return nil
-	case <-ctx.Done():
-		if !t.Stop() {
-			select {
-			case <-t.C:
-			default:
-			}
-		}
-		return ctx.Err()
-	}
-}
-
-func shouldRetry(resp *http.Response) bool {
-	if resp.StatusCode == http.StatusBadGateway ||
-		resp.StatusCode == http.StatusServiceUnavailable ||
-		resp.StatusCode == http.StatusGatewayTimeout {
-		return true
-	}
-	return false
+	return retryableClient.Do(req)
 }

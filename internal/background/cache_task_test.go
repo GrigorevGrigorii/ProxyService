@@ -32,13 +32,13 @@ type stubHttpClient struct {
 	passedCtx           context.Context
 	passedURL           string
 	passedTimeout       time.Duration
-	passedRetryCount    uint8
+	passedRetryCount    int
 	passedRetryInterval time.Duration
 	resp                *http.Response
 	err                 error
 }
 
-func (s *stubHttpClient) Get(ctx context.Context, url string, timeout time.Duration, retryCount uint8, retryInterval time.Duration) (*http.Response, error) {
+func (s *stubHttpClient) Get(ctx context.Context, url string, timeout time.Duration, retryCount int, retryInterval time.Duration) (*http.Response, error) {
 	s.passedCtx = ctx
 	s.passedURL = url
 	s.passedTimeout = timeout
@@ -110,7 +110,7 @@ func TestCacheTask_Success(t *testing.T) {
 	if stub.passedTimeout != time.Duration(svc.Timeout*float32(time.Second)) {
 		t.Fatalf("got timeout = %q, want %q", stub.passedURL, time.Duration(svc.Timeout*float32(time.Second)))
 	}
-	if stub.passedRetryCount != uint8(svc.RetryCount) {
+	if stub.passedRetryCount != svc.RetryCount {
 		t.Fatalf("got retry count = %q, want %q", stub.passedURL, svc.RetryCount)
 	}
 	if stub.passedRetryInterval != time.Duration(svc.RetryInterval*float32(time.Second)) {

@@ -51,7 +51,7 @@ func (t *CacheTask) Run(ctx context.Context, task *asynq.Task) error {
 		ctx,
 		targetUrl.String(),
 		time.Duration(service.Timeout*float32(time.Second)),
-		uint8(service.RetryCount),
+		service.RetryCount,
 		time.Duration(service.RetryInterval*float32(time.Second)),
 	)
 	if err != nil {

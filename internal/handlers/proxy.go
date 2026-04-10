@@ -65,7 +65,7 @@ func (h *ProxyHandlers) ProxyGetRequest(c *gin.Context) {
 		c.Request.Context(),
 		targetUrl.String(),
 		time.Duration(service.Timeout*float32(time.Second)),
-		uint8(service.RetryCount),
+		service.RetryCount,
 		time.Duration(service.RetryInterval*float32(time.Second)),
 	)
 	if err != nil {
