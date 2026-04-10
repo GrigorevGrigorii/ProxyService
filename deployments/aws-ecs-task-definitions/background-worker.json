@@ -12,7 +12,7 @@
             "environment": [
                 {
                     "name": "REDIS_MASTER_NAME",
-                    "value": "!empty!"
+                    "value": ""
                 },
                 {
                     "name": "REDIS_DATABASE",
@@ -20,7 +20,7 @@
                 },
                 {
                     "name": "REDIS_PASSWORD",
-                    "value": "!empty!"
+                    "value": ""
                 },
                 {
                     "name": "REDIS_ADDRS",
