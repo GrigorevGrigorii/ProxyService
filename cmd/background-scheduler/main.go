@@ -54,7 +54,7 @@ func main() {
 	})
 
 	// Asinq
-	provider := &background.DynamicProvider{DBRepository: dbRepository}
+	provider := &background.DynamicProvider{ServiceRepository: &dbRepository}
 	leaderElection := background.NewLeaderElection(&rdb, asynq.PeriodicTaskManagerOpts{
 		RedisUniversalClient:       rdb,
 		PeriodicTaskConfigProvider: provider,

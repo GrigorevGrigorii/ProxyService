@@ -3,8 +3,8 @@ package background
 import (
 	"context"
 	"encoding/json"
-	"proxy-service/internal/database"
 	"proxy-service/internal/models"
+	"proxy-service/internal/repository"
 	"time"
 
 	"github.com/hibiken/asynq"
@@ -12,13 +12,13 @@ import (
 )
 
 type DynamicProvider struct {
-	DBRepository database.DBRepository
+	ServiceRepository repository.ServiceRepository
 }
 
 func (p *DynamicProvider) GetConfigs() ([]*asynq.PeriodicTaskConfig, error) {
 	var tasks []*asynq.PeriodicTaskConfig
 
-	servicesToCache, err := p.DBRepository.GetForCaching(context.Background())
+	servicesToCache, err := p.ServiceRepository.GetForCaching(context.Background())
 	if err != nil {
 		return nil, err
 	}
