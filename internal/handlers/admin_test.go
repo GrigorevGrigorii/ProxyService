@@ -37,14 +37,6 @@ func (s *stubAdminServiceRepository) Get(ctx context.Context, name string) (*mod
 	return s.getFn(ctx, name)
 }
 
-func (s *stubAdminServiceRepository) GetFiltered(ctx context.Context, name, path, method, query string) (*models.ServiceDTO, error) {
-	return nil, errors.New("unexpected GetFiltered call")
-}
-
-func (s *stubAdminServiceRepository) GetForCaching(ctx context.Context) ([]models.ServiceDTO, error) {
-	return nil, errors.New("unexpected GetForCaching call")
-}
-
 func (s *stubAdminServiceRepository) Create(ctx context.Context, service *models.ServiceDTO) error {
 	if s.createFn == nil {
 		return errors.New("unexpected Create call")

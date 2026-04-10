@@ -79,7 +79,7 @@ func TestDBRepositoryGetNotFound(t *testing.T) {
 	}
 }
 
-func TestDBRepositoryGetFiltered(t *testing.T) {
+func TestDBRepositoryResolve(t *testing.T) {
 	repo, mock := setupRepositoryTest(t)
 
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "services" WHERE name = $1 ORDER BY "services"."name" LIMIT $2`)).
@@ -91,9 +91,9 @@ func TestDBRepositoryGetFiltered(t *testing.T) {
 		WithArgs("mock", "/mock", "GET", "query=param").
 		WillReturnRows(sqlmock.NewRows([]string{"service_name", "path", "method", "query"}).AddRow("mock", "/mock", "GET", "query=param"))
 
-	service, err := repo.GetFiltered(context.Background(), "mock", "/mock", "GET", "query=param")
+	service, err := repo.Resolve(context.Background(), "mock", "/mock", "GET", "query=param")
 	if err != nil {
-		t.Fatalf("GetFiltered returned error: %v", err)
+		t.Fatalf("Find returned error: %v", err)
 	}
 	if service.Name != "mock" {
 		t.Fatalf("expected service name mock, got %s", service.Name)
@@ -106,7 +106,7 @@ func TestDBRepositoryGetFiltered(t *testing.T) {
 	}
 }
 
-func TestDBRepositoryGetForCaching(t *testing.T) {
+func TestDBRepositoryLoadCacheableServices(t *testing.T) {
 	repo, mock := setupRepositoryTest(t)
 
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "services"`)).
@@ -116,9 +116,9 @@ func TestDBRepositoryGetForCaching(t *testing.T) {
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "targets" WHERE "targets"."service_name" = $1 AND cache_interval IS NOT NULL`)).
 		WillReturnRows(sqlmock.NewRows([]string{"service_name", "path", "method", "query", "cache_interval"}).AddRow("mock", "/mock", "GET", "query=param", "1m"))
 
-	services, err := repo.GetForCaching(context.Background())
+	services, err := repo.LoadCacheableServices(context.Background())
 	if err != nil {
-		t.Fatalf("GetFiltered returned error: %v", err)
+		t.Fatalf("Find returned error: %v", err)
 	}
 	if len(services) != 1 {
 		t.Fatalf("expected len(services) to be 1")

@@ -36,7 +36,6 @@ func main() {
 	if err != nil {
 		log.Fatal().Msg(err.Error())
 	}
-	dbRepository := database.DBRepository{DB: db}
 
 	// Redis
 	var redisTLSConfig *tls.Config
@@ -54,7 +53,7 @@ func main() {
 	})
 
 	// Asinq
-	provider := &background.DynamicProvider{ServiceRepository: &dbRepository}
+	provider := &background.DynamicProvider{CacheableServicesLoader: &database.DBRepository{DB: db}}
 	leaderElection := background.NewLeaderElection(&rdb, asynq.PeriodicTaskManagerOpts{
 		RedisUniversalClient:       rdb,
 		PeriodicTaskConfigProvider: provider,

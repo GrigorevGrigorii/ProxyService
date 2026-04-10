@@ -36,7 +36,7 @@ func (r *DBRepository) Get(ctx context.Context, name string) (*models.ServiceDTO
 	return &result, nil
 }
 
-func (r *DBRepository) GetFiltered(ctx context.Context, name, path, method, query string) (*models.ServiceDTO, error) {
+func (r *DBRepository) Resolve(ctx context.Context, name, path, method, query string) (*models.ServiceDTO, error) {
 	targetsFilter := func(db gorm.PreloadBuilder) error {
 		db.Where("path = ? AND method = ? AND (query = ? OR query = '*')", path, method, query)
 		return nil
@@ -53,7 +53,7 @@ func (r *DBRepository) GetFiltered(ctx context.Context, name, path, method, quer
 	return &result, nil
 }
 
-func (r *DBRepository) GetForCaching(ctx context.Context) ([]models.ServiceDTO, error) {
+func (r *DBRepository) LoadCacheableServices(ctx context.Context) ([]models.ServiceDTO, error) {
 	var result []models.ServiceDTO
 
 	targetsFilter := func(db gorm.PreloadBuilder) error {

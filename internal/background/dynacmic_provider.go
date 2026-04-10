@@ -12,13 +12,13 @@ import (
 )
 
 type DynamicProvider struct {
-	ServiceRepository repository.ServiceRepository
+	CacheableServicesLoader repository.CacheableServicesLoader
 }
 
 func (p *DynamicProvider) GetConfigs() ([]*asynq.PeriodicTaskConfig, error) {
 	var tasks []*asynq.PeriodicTaskConfig
 
-	servicesToCache, err := p.ServiceRepository.GetForCaching(context.Background())
+	servicesToCache, err := p.CacheableServicesLoader.LoadCacheableServices(context.Background())
 	if err != nil {
 		return nil, err
 	}
