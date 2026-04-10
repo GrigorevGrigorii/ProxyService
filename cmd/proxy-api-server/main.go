@@ -91,9 +91,9 @@ func main() {
 
 	// Handlers
 	proxyHandlers := handlers.ProxyHandlers{
-		DBRepository:    &database.DBRepository{DB: db},
-		HTTPClient:      &httpclient.Client{},
-		CacheRepository: &cache.RedisRepository{Redis: &rdb},
+		ServiceRepository: &database.DBRepository{DB: db},
+		HTTPClient:        &httpclient.Client{},
+		CacheRepository:   &cache.RedisRepository{Redis: &rdb},
 	}
 
 	router.GET("/api/proxy/ping", handlers.Ping)

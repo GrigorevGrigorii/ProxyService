@@ -11,7 +11,7 @@ import (
 )
 
 type AdminHandlers struct {
-	DBRepository database.Repository
+	ServiceRepository ServiceRepository
 }
 
 // GetServices godoc
@@ -22,7 +22,7 @@ type AdminHandlers struct {
 //	@Success	200	{object}	[]models.ServiceDTO	"Success"
 //	@Router		/v1/service [get]
 func (h *AdminHandlers) GetServices(c *gin.Context) {
-	services, err := h.DBRepository.GetAll(c.Request.Context())
+	services, err := h.ServiceRepository.GetAll(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, MessageResponse{Message: err.Error()})
 		return
@@ -41,7 +41,7 @@ func (h *AdminHandlers) GetServices(c *gin.Context) {
 //	@Failure	404		{object}	MessageResponse		"Service not found"
 //	@Router		/v1/service/{name} [get]
 func (h *AdminHandlers) GetService(c *gin.Context) {
-	service, err := h.DBRepository.Get(c.Request.Context(), c.Param("name"))
+	service, err := h.ServiceRepository.Get(c.Request.Context(), c.Param("name"))
 	if errors.Is(err, database.ErrNotFound) {
 		c.JSON(http.StatusNotFound, MessageResponse{Message: fmt.Sprintf("Service '%s' not found", c.Param("name"))})
 		return
@@ -92,7 +92,7 @@ func (h *AdminHandlers) CreateService(c *gin.Context) {
 		service.Targets[i] = targetDTO
 	}
 
-	err := h.DBRepository.Create(c.Request.Context(), &service)
+	err := h.ServiceRepository.Create(c.Request.Context(), &service)
 	switch {
 	case err == nil:
 		c.JSON(http.StatusOK, MessageResponse{Message: "ok"})
@@ -142,7 +142,7 @@ func (h *AdminHandlers) UpdateService(c *gin.Context) {
 		service.Targets[i] = targetDTO
 	}
 
-	err := h.DBRepository.Update(c.Request.Context(), &service)
+	err := h.ServiceRepository.Update(c.Request.Context(), &service)
 	switch {
 	case err == nil:
 		c.JSON(http.StatusOK, MessageResponse{Message: "ok"})
@@ -164,7 +164,7 @@ func (h *AdminHandlers) UpdateService(c *gin.Context) {
 //	@Success	200		{object}	MessageResponse	"Success"
 //	@Router		/v1/service/{name} [delete]
 func (h *AdminHandlers) DeleteService(c *gin.Context) {
-	err := h.DBRepository.Delete(c.Request.Context(), c.Param("name"))
+	err := h.ServiceRepository.Delete(c.Request.Context(), c.Param("name"))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, MessageResponse{Message: err.Error()})
 		return

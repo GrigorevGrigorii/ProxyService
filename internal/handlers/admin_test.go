@@ -66,9 +66,9 @@ func (s *stubAdminDBRepository) Delete(ctx context.Context, name string) error {
 	return s.deleteFn(ctx, name)
 }
 
-func setupAdminTest(repo database.Repository) *gin.Engine {
+func setupAdminTest(repo ServiceRepository) *gin.Engine {
 	gin.SetMode(gin.TestMode)
-	h := &AdminHandlers{DBRepository: repo}
+	h := &AdminHandlers{ServiceRepository: repo}
 	r := gin.New()
 	r.GET("/service", h.GetServices)
 	r.GET("/service/:name", h.GetService)

@@ -72,7 +72,7 @@ func main() {
 
 	// Handlers
 	adminHandlers := handlers.AdminHandlers{
-		DBRepository: &database.DBRepository{DB: db},
+		ServiceRepository: &database.DBRepository{DB: db},
 	}
 
 	router.GET("/api/admin/ping", handlers.Ping)

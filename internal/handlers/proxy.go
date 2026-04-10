@@ -16,9 +16,9 @@ import (
 )
 
 type ProxyHandlers struct {
-	DBRepository    database.Repository
-	HTTPClient      httpclient.HTTPClient
-	CacheRepository cache.Repository
+	ServiceRepository ServiceRepository
+	HTTPClient        httpclient.HTTPClient
+	CacheRepository   cache.Repository
 }
 
 // ProxyGetRequest godoc
@@ -142,7 +142,7 @@ func (h *ProxyHandlers) ProxyDeleteRequest(c *gin.Context) {
 }
 
 func (h *ProxyHandlers) getAllowedService(ctx context.Context, service, method, path, query string) (*models.ServiceDTO, error) {
-	allowedService, err := h.DBRepository.GetFiltered(ctx, service, path, method, query)
+	allowedService, err := h.ServiceRepository.GetFiltered(ctx, service, path, method, query)
 	if err != nil {
 		return nil, err
 	}
