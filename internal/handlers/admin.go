@@ -4,14 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"proxy-service/internal/database"
 	"proxy-service/internal/models"
+	"proxy-service/internal/repository"
 
 	"github.com/gin-gonic/gin"
 )
 
 type AdminHandlers struct {
-	ServiceRepository ServiceRepository
+	ServiceRepository repository.ServiceRepository
 }
 
 // GetServices godoc
@@ -42,7 +42,7 @@ func (h *AdminHandlers) GetServices(c *gin.Context) {
 //	@Router		/v1/service/{name} [get]
 func (h *AdminHandlers) GetService(c *gin.Context) {
 	service, err := h.ServiceRepository.Get(c.Request.Context(), c.Param("name"))
-	if errors.Is(err, database.ErrNotFound) {
+	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusNotFound, MessageResponse{Message: fmt.Sprintf("Service '%s' not found", c.Param("name"))})
 		return
 	}
@@ -96,7 +96,7 @@ func (h *AdminHandlers) CreateService(c *gin.Context) {
 	switch {
 	case err == nil:
 		c.JSON(http.StatusOK, MessageResponse{Message: "ok"})
-	case errors.Is(err, database.ErrAlreadyExists):
+	case errors.Is(err, repository.ErrAlreadyExists):
 		c.JSON(http.StatusConflict, MessageResponse{Message: fmt.Sprintf("Service '%s' already exists", service.Name)})
 	default:
 		c.JSON(http.StatusInternalServerError, MessageResponse{Message: err.Error()})
@@ -146,9 +146,9 @@ func (h *AdminHandlers) UpdateService(c *gin.Context) {
 	switch {
 	case err == nil:
 		c.JSON(http.StatusOK, MessageResponse{Message: "ok"})
-	case errors.Is(err, database.ErrNotFound):
+	case errors.Is(err, repository.ErrNotFound):
 		c.JSON(http.StatusNotFound, MessageResponse{Message: fmt.Sprintf("Service '%s' not found", c.Param("name"))})
-	case errors.Is(err, database.ErrVersionMismatch):
+	case errors.Is(err, repository.ErrVersionMismatch):
 		c.JSON(http.StatusConflict, MessageResponse{Message: err.Error()})
 	default:
 		c.JSON(http.StatusInternalServerError, MessageResponse{Message: err.Error()})

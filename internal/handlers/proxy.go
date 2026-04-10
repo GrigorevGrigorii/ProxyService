@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"net/url"
 	"proxy-service/internal/cache"
-	"proxy-service/internal/database"
 	"proxy-service/internal/httpclient"
 	"proxy-service/internal/models"
+	"proxy-service/internal/repository"
 	"proxy-service/internal/utils"
 	"time"
 
@@ -16,7 +16,7 @@ import (
 )
 
 type ProxyHandlers struct {
-	ServiceRepository ServiceRepository
+	ServiceRepository repository.ServiceRepository
 	HTTPClient        httpclient.HTTPClient
 	CacheRepository   cache.Repository
 }
@@ -33,7 +33,7 @@ func (h *ProxyHandlers) ProxyGetRequest(c *gin.Context) {
 	log := utils.GetLogger(c.Request.Context())
 
 	service, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"), c.Request.URL.Query().Encode())
-	if errors.Is(err, database.ErrNotFound) {
+	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusForbidden, MessageResponse{Message: "service, path or query params are not allowed"})
 		return
 	}
@@ -88,7 +88,7 @@ func (h *ProxyHandlers) ProxyGetRequest(c *gin.Context) {
 //	@Router			/v1/{service}/{path} [post]
 func (h *ProxyHandlers) ProxyPostRequest(c *gin.Context) {
 	_, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"), "")
-	if errors.Is(err, database.ErrNotFound) {
+	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusForbidden, MessageResponse{Message: "service, path or query params are not allowed"})
 		return
 	}
@@ -109,7 +109,7 @@ func (h *ProxyHandlers) ProxyPostRequest(c *gin.Context) {
 //	@Router			/v1/{service}/{path} [put]
 func (h *ProxyHandlers) ProxyPutRequest(c *gin.Context) {
 	_, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"), "")
-	if errors.Is(err, database.ErrNotFound) {
+	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusForbidden, MessageResponse{Message: "service, path or query params are not allowed"})
 		return
 	}
@@ -130,7 +130,7 @@ func (h *ProxyHandlers) ProxyPutRequest(c *gin.Context) {
 //	@Router			/v1/{service}/{path} [delete]
 func (h *ProxyHandlers) ProxyDeleteRequest(c *gin.Context) {
 	_, err := h.getAllowedService(c.Request.Context(), c.Param("service"), http.MethodGet, c.Param("path"), "")
-	if errors.Is(err, database.ErrNotFound) {
+	if errors.Is(err, repository.ErrNotFound) {
 		c.JSON(http.StatusForbidden, MessageResponse{Message: "service, path or query params are not allowed"})
 		return
 	}

@@ -4,14 +4,9 @@ import (
 	"context"
 	"errors"
 	"proxy-service/internal/models"
+	"proxy-service/internal/repository"
 
 	"gorm.io/gorm"
-)
-
-var (
-	ErrVersionMismatch = errors.New("Version mismatch")
-	ErrNotFound        = gorm.ErrRecordNotFound
-	ErrAlreadyExists   = gorm.ErrDuplicatedKey
 )
 
 type DBRepository struct {
@@ -21,7 +16,7 @@ type DBRepository struct {
 func (r *DBRepository) GetAll(ctx context.Context) ([]models.ServiceDTO, error) {
 	services, err := gorm.G[Service](r.DB).Preload("Targets", nil).Find(ctx)
 	if err != nil {
-		return nil, err
+		return nil, convertErr(err)
 	}
 
 	result := make([]models.ServiceDTO, len(services))
@@ -34,11 +29,11 @@ func (r *DBRepository) GetAll(ctx context.Context) ([]models.ServiceDTO, error) 
 func (r *DBRepository) Get(ctx context.Context, name string) (*models.ServiceDTO, error) {
 	service, err := gorm.G[Service](r.DB).Preload("Targets", nil).Where("name = ?", name).First(ctx)
 	if err != nil {
-		return nil, err
+		return nil, convertErr(err)
 	}
 
 	result := ServiceDTOFromDBModel(service)
-	return &result, err
+	return &result, nil
 }
 
 func (r *DBRepository) GetFiltered(ctx context.Context, name, path, method, query string) (*models.ServiceDTO, error) {
@@ -48,14 +43,14 @@ func (r *DBRepository) GetFiltered(ctx context.Context, name, path, method, quer
 	}
 	service, err := gorm.G[Service](r.DB).Preload("Targets", targetsFilter).Where("name = ?", name).First(ctx)
 	if err != nil {
-		return nil, err
+		return nil, convertErr(err)
 	}
 	if len(service.Targets) == 0 {
 		return nil, gorm.ErrRecordNotFound
 	}
 
 	result := ServiceDTOFromDBModel(service)
-	return &result, err
+	return &result, nil
 }
 
 func (r *DBRepository) GetForCaching(ctx context.Context) ([]models.ServiceDTO, error) {
@@ -67,7 +62,7 @@ func (r *DBRepository) GetForCaching(ctx context.Context) ([]models.ServiceDTO, 
 	}
 	services, err := gorm.G[Service](r.DB).Preload("Targets", targetsFilter).Find(ctx)
 	if err != nil {
-		return nil, err
+		return nil, convertErr(err)
 	}
 	for _, service := range services {
 		if len(service.Targets) != 0 {
@@ -75,26 +70,27 @@ func (r *DBRepository) GetForCaching(ctx context.Context) ([]models.ServiceDTO, 
 		}
 	}
 
-	return result, err
+	return result, nil
 }
 
 func (r *DBRepository) Create(ctx context.Context, service *models.ServiceDTO) error {
 	serviceRow := ServiceDBModelFromDTO(*service)
-	return r.DB.Transaction(func(tx *gorm.DB) error {
+	err := r.DB.Transaction(func(tx *gorm.DB) error {
 		return gorm.G[Service](tx).Create(ctx, &serviceRow)
 	})
+	return convertErr(err)
 }
 
 func (r *DBRepository) Update(ctx context.Context, service *models.ServiceDTO) error {
 	serviceRow := ServiceDBModelFromDTO(*service)
-	return r.DB.Transaction(func(tx *gorm.DB) error {
+	err := r.DB.Transaction(func(tx *gorm.DB) error {
 		tmpService, err := gorm.G[Service](tx).Raw("SELECT * FROM \"services\" WHERE name = ? FOR UPDATE", service.Name).First(ctx)
 		if err != nil {
 			return err
 		}
 
 		if tmpService.Version != service.Version {
-			return ErrVersionMismatch
+			return repository.ErrVersionMismatch
 		}
 
 		service.Version = tmpService.Version + 1
@@ -114,9 +110,21 @@ func (r *DBRepository) Update(ctx context.Context, service *models.ServiceDTO) e
 
 		return nil
 	})
+	return convertErr(err)
 }
 
 func (r *DBRepository) Delete(ctx context.Context, name string) error {
 	_, err := gorm.G[Service](r.DB).Where("name = ?", name).Delete(ctx)
-	return err
+	return convertErr(err)
+}
+
+func convertErr(err error) error {
+	switch {
+	case errors.Is(err, gorm.ErrRecordNotFound):
+		return repository.ErrNotFound
+	case errors.Is(err, gorm.ErrDuplicatedKey):
+		return repository.ErrAlreadyExists
+	default:
+		return err
+	}
 }

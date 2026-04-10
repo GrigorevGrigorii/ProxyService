@@ -5,6 +5,7 @@ import (
 	"database/sql/driver"
 	"errors"
 	"proxy-service/internal/models"
+	"proxy-service/internal/repository"
 	"regexp"
 	"testing"
 
@@ -70,7 +71,7 @@ func TestDBRepositoryGetNotFound(t *testing.T) {
 	if service != nil {
 		t.Fatalf("expected nil service, got %+v", service)
 	}
-	if !errors.Is(err, ErrNotFound) {
+	if !errors.Is(err, repository.ErrNotFound) {
 		t.Fatalf("expected ErrNotFound, got %v", err)
 	}
 	if err := mock.ExpectationsWereMet(); err != nil {
@@ -150,7 +151,7 @@ func TestDBRepositoryCreateDuplicate(t *testing.T) {
 		RetryCount:    3,
 		RetryInterval: 0.5,
 	})
-	if !errors.Is(err, ErrAlreadyExists) {
+	if !errors.Is(err, repository.ErrAlreadyExists) {
 		t.Fatalf("expected ErrAlreadyExists, got %v", err)
 	}
 	if err := mock.ExpectationsWereMet(); err != nil {
@@ -179,7 +180,7 @@ func TestDBRepositoryUpdateVersionMismatch(t *testing.T) {
 		Version:       2,
 		Targets:       []models.TargetDTO{{Path: "/new", Method: "GET"}},
 	})
-	if !errors.Is(err, ErrVersionMismatch) {
+	if !errors.Is(err, repository.ErrVersionMismatch) {
 		t.Fatalf("expected ErrVersionMismatch, got %v", err)
 	}
 	if err := mock.ExpectationsWereMet(); err != nil {
