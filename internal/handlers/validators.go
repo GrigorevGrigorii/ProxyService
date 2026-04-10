@@ -3,26 +3,20 @@ package handlers
 import (
 	"net/http"
 	"net/url"
-	"sync"
 	"time"
 
 	"github.com/go-playground/validator/v10"
 )
 
-var (
-	Validate *validator.Validate
-	once     sync.Once
-)
+var Validate *validator.Validate
 
 func init() {
-	once.Do(func() {
-		Validate = validator.New()
+	Validate = validator.New()
 
-		Validate.RegisterValidation("duration", validDuration)
-		Validate.RegisterValidation("query", validQuery)
+	Validate.RegisterValidation("duration", validDuration)
+	Validate.RegisterValidation("query", validQuery)
 
-		Validate.RegisterStructValidation(validateTarget, target{})
-	})
+	Validate.RegisterStructValidation(validateTarget, target{})
 }
 
 func validDuration(fl validator.FieldLevel) bool {
