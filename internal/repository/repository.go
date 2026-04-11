@@ -18,5 +18,5 @@ type ServiceResolver interface {
 }
 
 type CacheableServicesLoader interface {
-	LoadCacheableServices(ctx context.Context) ([]models.ServiceDTO, error)
+	LoadCacheable(ctx context.Context) ([]models.ServiceDTO, error)
 }

@@ -106,7 +106,7 @@ func TestDBRepositoryResolve(t *testing.T) {
 	}
 }
 
-func TestDBRepositoryLoadCacheableServices(t *testing.T) {
+func TestDBRepositoryLoadCacheable(t *testing.T) {
 	repo, mock := setupRepositoryTest(t)
 
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "services"`)).
@@ -116,7 +116,7 @@ func TestDBRepositoryLoadCacheableServices(t *testing.T) {
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "targets" WHERE "targets"."service_name" = $1 AND cache_interval IS NOT NULL`)).
 		WillReturnRows(sqlmock.NewRows([]string{"service_name", "path", "method", "query", "cache_interval"}).AddRow("mock", "/mock", "GET", "query=param", "1m"))
 
-	services, err := repo.LoadCacheableServices(context.Background())
+	services, err := repo.LoadCacheable(context.Background())
 	if err != nil {
 		t.Fatalf("Find returned error: %v", err)
 	}

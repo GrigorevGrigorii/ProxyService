@@ -53,7 +53,7 @@ func (r *DBRepository) Resolve(ctx context.Context, name, path, method, query st
 	return &result, nil
 }
 
-func (r *DBRepository) LoadCacheableServices(ctx context.Context) ([]models.ServiceDTO, error) {
+func (r *DBRepository) LoadCacheable(ctx context.Context) ([]models.ServiceDTO, error) {
 	var result []models.ServiceDTO
 
 	targetsFilter := func(db gorm.PreloadBuilder) error {

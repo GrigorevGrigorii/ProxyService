@@ -18,7 +18,7 @@ type DynamicProvider struct {
 func (p *DynamicProvider) GetConfigs() ([]*asynq.PeriodicTaskConfig, error) {
 	var tasks []*asynq.PeriodicTaskConfig
 
-	servicesToCache, err := p.CacheableServicesLoader.LoadCacheableServices(context.Background())
+	servicesToCache, err := p.CacheableServicesLoader.LoadCacheable(context.Background())
 	if err != nil {
 		return nil, err
 	}
