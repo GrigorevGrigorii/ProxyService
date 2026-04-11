@@ -16,7 +16,7 @@ const (
 )
 
 type LeaderElection struct {
-	redisClient      *redis.UniversalClient
+	redisClient      redis.UniversalClient
 	nodeID           string
 	lockTTL          time.Duration
 	renewalInterval  time.Duration
@@ -25,7 +25,7 @@ type LeaderElection struct {
 	isLeader         atomic.Bool
 }
 
-func NewLeaderElection(redisClient *redis.UniversalClient, opts asynq.PeriodicTaskManagerOpts) *LeaderElection {
+func NewLeaderElection(redisClient redis.UniversalClient, opts asynq.PeriodicTaskManagerOpts) *LeaderElection {
 	return &LeaderElection{
 		redisClient:      redisClient,
 		nodeID:           uuid.New().String(),
@@ -59,7 +59,7 @@ func (le *LeaderElection) tryBecomeLeader(ctx context.Context) {
 	}
 
 	// Try to acquire leadership
-	acquired, err := (*le.redisClient).SetNX(ctx, leaderLockKey, le.nodeID, le.lockTTL).Result()
+	acquired, err := le.redisClient.SetNX(ctx, leaderLockKey, le.nodeID, le.lockTTL).Result()
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to acquire leadership lock")
 		return
@@ -72,7 +72,7 @@ func (le *LeaderElection) tryBecomeLeader(ctx context.Context) {
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to create periodic task manager")
 			// Release the lock since we can't start the manager
-			(*le.redisClient).Del(ctx, leaderLockKey)
+			le.redisClient.Del(ctx, leaderLockKey)
 			return
 		}
 		le.runAsLeader(ctx, manager)
@@ -107,7 +107,7 @@ func (le *LeaderElection) runAsLeader(ctx context.Context, manager *asynq.Period
 
 		case <-renewTicker.C:
 			// Check that we STILL hold the lock (by verifying the value)
-			currentLeader, err := (*le.redisClient).Get(ctx, leaderLockKey).Result()
+			currentLeader, err := le.redisClient.Get(ctx, leaderLockKey).Result()
 			if err != nil {
 				if err == redis.Nil {
 					log.Warn().Msg("Leadership lock expired")
@@ -123,7 +123,7 @@ func (le *LeaderElection) runAsLeader(ctx context.Context, manager *asynq.Period
 			}
 
 			// Still the leader - renew the lock
-			renewed, err := (*le.redisClient).Expire(ctx, leaderLockKey, le.lockTTL).Result()
+			renewed, err := le.redisClient.Expire(ctx, leaderLockKey, le.lockTTL).Result()
 			if err != nil || !renewed {
 				log.Warn().Err(err).Msg("Failed to renew leadership lock")
 				return // Lost leadership

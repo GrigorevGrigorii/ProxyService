@@ -48,7 +48,7 @@ type HTTPClient interface {
 
 type Client struct{}
 
-func (c *Client) Get(ctx context.Context, url string, timeout time.Duration, retryCount int, retryInterval time.Duration) (*http.Response, error) {
+func (c Client) Get(ctx context.Context, url string, timeout time.Duration, retryCount int, retryInterval time.Duration) (*http.Response, error) {
 	retryableClient := newRetryableClient(ctx, timeout, retryCount, retryInterval)
 
 	req, err := retryablehttp.NewRequestWithContext(ctx, "GET", url, nil)

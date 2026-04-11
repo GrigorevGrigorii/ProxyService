@@ -68,7 +68,7 @@ type LoadableConfig interface {
 	ProxyServerConfig | MockServerConfig | AdminServerConfig | BackgroundWorkerConfig | BackgroundSchedulerConfig | MigrationConfig
 }
 
-func LoadConfig[T LoadableConfig]() (*T, error) {
+func LoadConfig[T LoadableConfig]() (T, error) {
 	var cfg T
 
 	v := viper.New()
@@ -81,13 +81,13 @@ func LoadConfig[T LoadableConfig]() (*T, error) {
 	v.AutomaticEnv()
 
 	if err := v.ReadInConfig(); err != nil {
-		return nil, err
+		return cfg, err
 	}
 
 	if err := v.Unmarshal(&cfg); err != nil {
-		return nil, err
+		return cfg, err
 	}
-	return &cfg, nil
+	return cfg, nil
 }
 
 func configName(cfg any) string {

@@ -51,7 +51,7 @@ func (h *AdminHandlers) GetService(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, *service)
+	c.JSON(http.StatusOK, service)
 }
 
 // CreateService godoc
@@ -92,7 +92,7 @@ func (h *AdminHandlers) CreateService(c *gin.Context) {
 		service.Targets[i] = targetDTO
 	}
 
-	err := h.ServiceRepository.Create(c.Request.Context(), &service)
+	err := h.ServiceRepository.Create(c.Request.Context(), service)
 	switch {
 	case err == nil:
 		c.JSON(http.StatusOK, MessageResponse{Message: "ok"})
@@ -142,7 +142,7 @@ func (h *AdminHandlers) UpdateService(c *gin.Context) {
 		service.Targets[i] = targetDTO
 	}
 
-	err := h.ServiceRepository.Update(c.Request.Context(), &service)
+	err := h.ServiceRepository.Update(c.Request.Context(), service)
 	switch {
 	case err == nil:
 		c.JSON(http.StatusOK, MessageResponse{Message: "ok"})

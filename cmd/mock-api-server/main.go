@@ -14,7 +14,7 @@ import (
 )
 
 type MockHandlers struct {
-	cfg *config.MockServerConfig
+	cfg config.MockServerConfig
 }
 
 func (h *MockHandlers) mockHandler(c *gin.Context) {

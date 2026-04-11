@@ -67,10 +67,7 @@ func TestDBRepositoryGetNotFound(t *testing.T) {
 		WithArgs("missing", 1).
 		WillReturnError(gorm.ErrRecordNotFound)
 
-	service, err := repo.Get(context.Background(), "missing")
-	if service != nil {
-		t.Fatalf("expected nil service, got %+v", service)
-	}
+	_, err := repo.Get(context.Background(), "missing")
 	if !errors.Is(err, repository.ErrNotFound) {
 		t.Fatalf("expected ErrNotFound, got %v", err)
 	}
@@ -143,7 +140,7 @@ func TestDBRepositoryCreateDuplicate(t *testing.T) {
 		WillReturnError(gorm.ErrDuplicatedKey)
 	mock.ExpectRollback()
 
-	err := repo.Create(context.Background(), &models.ServiceDTO{
+	err := repo.Create(context.Background(), models.ServiceDTO{
 		Name:          "mock",
 		Scheme:        "http",
 		Host:          "localhost:8081",
@@ -170,7 +167,7 @@ func TestDBRepositoryUpdateVersionMismatch(t *testing.T) {
 		}).AddRow("mock", "http", "localhost:8081", 10.0, 2, 0.5, 3))
 	mock.ExpectRollback()
 
-	err := repo.Update(context.Background(), &models.ServiceDTO{
+	err := repo.Update(context.Background(), models.ServiceDTO{
 		Name:          "mock",
 		Scheme:        "http",
 		Host:          "localhost:8081",

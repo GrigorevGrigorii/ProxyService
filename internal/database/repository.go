@@ -26,31 +26,31 @@ func (r *DBRepository) GetAll(ctx context.Context) ([]models.ServiceDTO, error) 
 	return result, nil
 }
 
-func (r *DBRepository) Get(ctx context.Context, name string) (*models.ServiceDTO, error) {
+func (r *DBRepository) Get(ctx context.Context, name string) (models.ServiceDTO, error) {
 	service, err := gorm.G[Service](r.DB).Preload("Targets", nil).Where("name = ?", name).First(ctx)
 	if err != nil {
-		return nil, convertErr(err)
+		return models.ServiceDTO{}, convertErr(err)
 	}
 
 	result := ServiceDTOFromDBModel(service)
-	return &result, nil
+	return result, nil
 }
 
-func (r *DBRepository) Resolve(ctx context.Context, name, path, method, query string) (*models.ServiceDTO, error) {
+func (r *DBRepository) Resolve(ctx context.Context, name, path, method, query string) (models.ServiceDTO, error) {
 	targetsFilter := func(db gorm.PreloadBuilder) error {
 		db.Where("path = ? AND method = ? AND (query = ? OR query = '*')", path, method, query)
 		return nil
 	}
 	service, err := gorm.G[Service](r.DB).Preload("Targets", targetsFilter).Where("name = ?", name).First(ctx)
 	if err != nil {
-		return nil, convertErr(err)
+		return models.ServiceDTO{}, convertErr(err)
 	}
 	if len(service.Targets) == 0 {
-		return nil, gorm.ErrRecordNotFound
+		return models.ServiceDTO{}, gorm.ErrRecordNotFound
 	}
 
 	result := ServiceDTOFromDBModel(service)
-	return &result, nil
+	return result, nil
 }
 
 func (r *DBRepository) LoadCacheable(ctx context.Context) ([]models.ServiceDTO, error) {
@@ -73,16 +73,16 @@ func (r *DBRepository) LoadCacheable(ctx context.Context) ([]models.ServiceDTO, 
 	return result, nil
 }
 
-func (r *DBRepository) Create(ctx context.Context, service *models.ServiceDTO) error {
-	serviceRow := ServiceDBModelFromDTO(*service)
+func (r *DBRepository) Create(ctx context.Context, service models.ServiceDTO) error {
+	serviceRow := ServiceDBModelFromDTO(service)
 	err := r.DB.Transaction(func(tx *gorm.DB) error {
 		return gorm.G[Service](tx).Create(ctx, &serviceRow)
 	})
 	return convertErr(err)
 }
 
-func (r *DBRepository) Update(ctx context.Context, service *models.ServiceDTO) error {
-	serviceRow := ServiceDBModelFromDTO(*service)
+func (r *DBRepository) Update(ctx context.Context, service models.ServiceDTO) error {
+	serviceRow := ServiceDBModelFromDTO(service)
 	err := r.DB.Transaction(func(tx *gorm.DB) error {
 		tmpService, err := gorm.G[Service](tx).Raw("SELECT * FROM \"services\" WHERE name = ? FOR UPDATE", service.Name).First(ctx)
 		if err != nil {

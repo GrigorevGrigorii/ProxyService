@@ -47,8 +47,8 @@ func main() {
 
 	// Task Handlers
 	cacheTask := background.CacheTask{
-		HTTPClient:      &httpclient.Client{},
-		CacheRepository: &cache.RedisRepository{Redis: &rdb},
+		HTTPClient:      httpclient.Client{},
+		CacheRepository: &cache.RedisRepository{Redis: rdb},
 	}
 
 	// Asinq

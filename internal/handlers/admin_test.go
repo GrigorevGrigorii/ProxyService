@@ -17,9 +17,9 @@ import (
 
 type stubAdminServiceRepository struct {
 	getAllFn func(ctx context.Context) ([]models.ServiceDTO, error)
-	getFn    func(ctx context.Context, name string) (*models.ServiceDTO, error)
-	createFn func(ctx context.Context, service *models.ServiceDTO) error
-	updateFn func(ctx context.Context, service *models.ServiceDTO) error
+	getFn    func(ctx context.Context, name string) (models.ServiceDTO, error)
+	createFn func(ctx context.Context, service models.ServiceDTO) error
+	updateFn func(ctx context.Context, service models.ServiceDTO) error
 	deleteFn func(ctx context.Context, name string) error
 }
 
@@ -30,21 +30,21 @@ func (s *stubAdminServiceRepository) GetAll(ctx context.Context) ([]models.Servi
 	return s.getAllFn(ctx)
 }
 
-func (s *stubAdminServiceRepository) Get(ctx context.Context, name string) (*models.ServiceDTO, error) {
+func (s *stubAdminServiceRepository) Get(ctx context.Context, name string) (models.ServiceDTO, error) {
 	if s.getFn == nil {
-		return nil, errors.New("unexpected Get call")
+		return models.ServiceDTO{}, errors.New("unexpected Get call")
 	}
 	return s.getFn(ctx, name)
 }
 
-func (s *stubAdminServiceRepository) Create(ctx context.Context, service *models.ServiceDTO) error {
+func (s *stubAdminServiceRepository) Create(ctx context.Context, service models.ServiceDTO) error {
 	if s.createFn == nil {
 		return errors.New("unexpected Create call")
 	}
 	return s.createFn(ctx, service)
 }
 
-func (s *stubAdminServiceRepository) Update(ctx context.Context, service *models.ServiceDTO) error {
+func (s *stubAdminServiceRepository) Update(ctx context.Context, service models.ServiceDTO) error {
 	if s.updateFn == nil {
 		return errors.New("unexpected Update call")
 	}
@@ -123,11 +123,11 @@ func TestGetServices(t *testing.T) {
 
 func TestGetServiceNotFound(t *testing.T) {
 	router := setupAdminTest(&stubAdminServiceRepository{
-		getFn: func(ctx context.Context, name string) (*models.ServiceDTO, error) {
+		getFn: func(ctx context.Context, name string) (models.ServiceDTO, error) {
 			if name != "missing" {
 				t.Fatalf("expected service name %q, got %q", "missing", name)
 			}
-			return nil, repository.ErrNotFound
+			return models.ServiceDTO{}, repository.ErrNotFound
 		},
 	})
 
@@ -142,11 +142,11 @@ func TestGetServiceNotFound(t *testing.T) {
 
 func TestGetService(t *testing.T) {
 	router := setupAdminTest(&stubAdminServiceRepository{
-		getFn: func(ctx context.Context, name string) (*models.ServiceDTO, error) {
+		getFn: func(ctx context.Context, name string) (models.ServiceDTO, error) {
 			if name != "mock" {
 				t.Fatalf("expected service name %q, got %q", "mock", name)
 			}
-			return &models.ServiceDTO{
+			return models.ServiceDTO{
 				Name:          "mock",
 				Scheme:        "http",
 				Host:          "localhost:8080",
@@ -192,7 +192,7 @@ func TestGetService(t *testing.T) {
 
 func TestCreateServiceDuplicate(t *testing.T) {
 	router := setupAdminTest(&stubAdminServiceRepository{
-		createFn: func(ctx context.Context, service *models.ServiceDTO) error {
+		createFn: func(ctx context.Context, service models.ServiceDTO) error {
 			if service.Name != "mock" {
 				t.Fatalf("unexpected service name: %s", service.Name)
 			}
@@ -221,7 +221,7 @@ func TestCreateServiceDuplicate(t *testing.T) {
 
 func TestUpdateServiceVersionMismatch(t *testing.T) {
 	router := setupAdminTest(&stubAdminServiceRepository{
-		updateFn: func(ctx context.Context, service *models.ServiceDTO) error {
+		updateFn: func(ctx context.Context, service models.ServiceDTO) error {
 			if service.Name != "mock" {
 				t.Fatalf("unexpected service name: %s", service.Name)
 			}

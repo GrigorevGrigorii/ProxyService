@@ -82,7 +82,7 @@ func handler(ctx context.Context, event MigrationEvent) (MigrationResponse, erro
 	return MigrationResponse{Message: "Migration completed successfully"}, nil
 }
 
-func loadUser(ctx context.Context, cfg *config.MigrationConfig) (*url.Userinfo, error) {
+func loadUser(ctx context.Context, cfg config.MigrationConfig) (*url.Userinfo, error) {
 	if cfg.AWSRegion == "" || cfg.PGPasswordAWSSecretName == "" {
 		return url.UserPassword(cfg.PGConfig.Username, cfg.PGConfig.Password), nil
 	}

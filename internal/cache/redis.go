@@ -11,11 +11,11 @@ import (
 )
 
 type RedisRepository struct {
-	Redis *redis.UniversalClient
+	Redis redis.UniversalClient
 }
 
 func (r *RedisRepository) Set(ctx context.Context, service models.ServiceDTO, target models.TargetDTO, data string, statusCode int, contentType string) error {
-	return (*r.Redis).HSet(
+	return r.Redis.HSet(
 		ctx, cacheKey(service, target),
 		map[string]any{
 			"data":         data,
@@ -26,7 +26,7 @@ func (r *RedisRepository) Set(ctx context.Context, service models.ServiceDTO, ta
 }
 
 func (r *RedisRepository) Get(ctx context.Context, service models.ServiceDTO, target models.TargetDTO) (string, int, string, error) {
-	redisResult, err := (*r.Redis).HGetAll(ctx, cacheKey(service, target)).Result()
+	redisResult, err := r.Redis.HGetAll(ctx, cacheKey(service, target)).Result()
 	if err != nil {
 		return "", 0, "", err
 	}
