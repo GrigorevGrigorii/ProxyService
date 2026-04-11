@@ -29,16 +29,20 @@ type RedisConfig struct {
 }
 
 type ProxyServerConfig struct {
-	Port        int         `mapstructure:"port"`
-	SwaggerHost string      `mapstructure:"swagger_host"`
-	PGConfig    PGConfig    `mapstructure:"pg"`
-	RedisConfig RedisConfig `mapstructure:"redis"`
+	Port         int         `mapstructure:"port"`
+	AllowOrigins []string    `mapstructure:"allow_origins"`
+	AllowMethods []string    `mapstructure:"allow_methods"`
+	SwaggerHost  string      `mapstructure:"swagger_host"`
+	PGConfig     PGConfig    `mapstructure:"pg"`
+	RedisConfig  RedisConfig `mapstructure:"redis"`
 }
 
 type AdminServerConfig struct {
-	Port        int      `mapstructure:"port"`
-	SwaggerHost string   `mapstructure:"swagger_host"`
-	PGConfig    PGConfig `mapstructure:"pg"`
+	Port         int      `mapstructure:"port"`
+	AllowOrigins []string `mapstructure:"allow_origins"`
+	AllowMethods []string `mapstructure:"allow_methods"`
+	SwaggerHost  string   `mapstructure:"swagger_host"`
+	PGConfig     PGConfig `mapstructure:"pg"`
 }
 
 type BackgroundWorkerConfig struct {
@@ -75,6 +79,7 @@ func LoadConfig[T LoadableConfig]() (T, error) {
 	v.SetConfigName(configName(cfg))
 	v.SetConfigType("yaml")
 	v.AddConfigPath("./configs")
+	v.SetTypeByDefaultValue(true)
 
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.AllowEmptyEnv(true)

@@ -58,8 +58,9 @@ func main() {
 	// Middlewares
 	router.Use(gin.Recovery())
 	router.Use(cors.New(cors.Config{
-		AllowAllOrigins: true,
-		AllowMethods:    []string{"GET", "POST", "PUT", "DELETE"},
+		AllowOrigins:     cfg.AllowOrigins,
+		AllowMethods:     cfg.AllowMethods,
+		AllowCredentials: true,
 	}))
 	router.Use(middlewares.RequestIDMiddleware())
 	router.Use(middlewares.ZerologMiddleware())

@@ -71,6 +71,10 @@
                 {
                     "name": "SWAGGER_HOST",
                     "value": "proxy-service.sylu.net"
+                },
+                {
+                    "name": "ALLOW_ORIGINS",
+                    "value": "proxy-service.sylu.net"
                 }
             ],
             "mountPoints": [],
