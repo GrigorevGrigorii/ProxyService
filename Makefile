@@ -1,4 +1,4 @@
-.PHONY: test butify start-proxy start-mock start-containers start-containers-with-build stop-containers migrate-local swagger-admin swagger-proxy swagger-all
+.PHONY: test butify start-proxy start-mock start-containers start-containers-with-build stop-containers migrate-local swagger-admin swagger-proxy swagger-all init-pg-data
 
 butify:
 	go fmt ./internal ./cmd ./scripts
@@ -39,3 +39,6 @@ swagger-proxy:
 swagger-all:
 	make swagger-admin
 	make swagger-proxy
+
+make init-pg-data:
+	PGPASSWORD=proxy_service_password docker exec -i postgres-container psql -U proxy_service_user -d proxy_service_db -f /scripts/seed-data.sql

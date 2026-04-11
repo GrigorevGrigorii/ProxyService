@@ -71,8 +71,14 @@ This spins up:
 - Background worker & scheduler
 
 ### 3. Run migrations
+Install `migrate` tool using [instruction](https://github.com/golang-migrate/migrate/blob/master/cmd/migrate/README.md#installation)
 ```bash
 make migrate-local
+```
+
+### 4. Fill the database with test data
+```bash
+make init-pg-data
 ```
 
 ## 📡 API Documentation
