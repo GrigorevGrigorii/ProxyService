@@ -1,0 +1,133 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: proxy-api-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: proxy-api-server
+  template:
+    metadata:
+      labels:
+        app: proxy-api-server
+    spec:
+      containers:
+        - name: main
+          image: grigorevgrigorii/proxy-service_proxy-api-server:1.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+              name: http
+          envFrom:
+            - configMapRef:
+                name: proxy-api-server-config
+            - secretRef:
+                name: proxy-service-db-secret
+            - secretRef:
+                name: proxy-service-redis-secret
+          resources:
+            requests:
+              cpu: "1"
+              memory: 2Gi
+            limits:
+              cpu: "1"
+              memory: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin-api-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: admin-api-server
+  template:
+    metadata:
+      labels:
+        app: admin-api-server
+    spec:
+      containers:
+        - name: main
+          image: grigorevgrigorii/proxy-service_admin-api-server:1.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+              name: http
+          envFrom:
+            - configMapRef:
+                name: admin-api-server-config
+            - secretRef:
+                name: proxy-service-db-secret
+          resources:
+            requests:
+              cpu: "1"
+              memory: 2Gi
+            limits:
+              cpu: "1"
+              memory: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: background-scheduler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: background-scheduler
+  template:
+    metadata:
+      labels:
+        app: background-scheduler
+    spec:
+      containers:
+        - name: main
+          image: grigorevgrigorii/proxy-service_background-scheduler:1.0.0
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: background-scheduler-config
+            - secretRef:
+                name: proxy-service-db-secret
+            - secretRef:
+                name: proxy-service-redis-secret
+          resources:
+            requests:
+              cpu: "1"
+              memory: 2Gi
+            limits:
+              cpu: "1"
+              memory: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: background-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: background-worker
+  template:
+    metadata:
+      labels:
+        app: background-worker
+    spec:
+      containers:
+        - name: main
+          image: grigorevgrigorii/proxy-service_background-worker:1.0.0
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: background-worker-config
+            - secretRef:
+                name: proxy-service-redis-secret
+          resources:
+            requests:
+              cpu: "1"
+              memory: 2Gi
+            limits:
+              cpu: "1"
+              memory: 2Gi

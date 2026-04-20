@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: proxy-api-server-config
+data:
+  PORT: "80"
+  GIN_MODE: "release"
+  PG_HOST: "proxy-service.crsy0km663m8.ap-southeast-1.rds.amazonaws.com"
+  PG_PORT: "5432"
+  PG_DATABASE: "proxy_service"
+  PG_SSLMODE: "verify-full"
+  PG_SSLROOTCERT: "./global-bundle.pem"
+  REDIS_MASTER_NAME: ""
+  REDIS_ADDRS: "proxy-service-prod-vleofz.serverless.apse1.cache.amazonaws.com:6379"
+  REDIS_DATABASE: "0"
+  REDIS_ENABLE_TLS: "true"
+  REDIS_READ_ONLY: "true"
+  SWAGGER_HOST: "proxy-service.sylu.net"
+  ALLOW_ORIGINS: "proxy-service.sylu.net"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: admin-api-server-config
+data:
+  PORT: "80"
+  GIN_MODE: "release"
+  PG_HOST: "proxy-service.crsy0km663m8.ap-southeast-1.rds.amazonaws.com"
+  PG_PORT: "5432"
+  PG_DATABASE: "proxy_service"
+  PG_SSLMODE: "verify-full"
+  PG_SSLROOTCERT: "./global-bundle.pem"
+  SWAGGER_HOST: "proxy-service.sylu.net"
+  ALLOW_ORIGINS: "proxy-service.sylu.net"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: background-scheduler-config
+data:
+  MODE: "release"
+  PG_HOST: "proxy-service.crsy0km663m8.ap-southeast-1.rds.amazonaws.com"
+  PG_PORT: "5432"
+  PG_DATABASE: "proxy_service"
+  PG_SSLMODE: "verify-full"
+  PG_SSLROOTCERT: "./global-bundle.pem"
+  REDIS_MASTER_NAME: ""
+  REDIS_ADDRS: "proxy-service-prod-vleofz.serverless.apse1.cache.amazonaws.com:6379"
+  REDIS_DATABASE: "0"
+  REDIS_ENABLE_TLS: "true"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: background-worker-config
+data:
+  MODE: "release"
+  CONCURRENCY: "4"
+  REDIS_MASTER_NAME: ""
+  REDIS_ADDRS: "proxy-service-prod-vleofz.serverless.apse1.cache.amazonaws.com:6379"
+  REDIS_DATABASE: "0"
+  REDIS_ENABLE_TLS: "true"

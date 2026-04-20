@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: proxy-api-server-config
+data:
+  PORT: "80"
+  PG_HOST: "host.minikube.internal"
+  REDIS_ADDRS: "host.minikube.internal:6379"
+  SWAGGER_HOST: "proxy-service.local"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: admin-api-server-config
+data:
+  PORT: "80"
+  PG_HOST: "host.minikube.internal"
+  SWAGGER_HOST: "proxy-service.local"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: background-scheduler-config
+data:
+  PG_HOST: "host.minikube.internal"
+  REDIS_ADDRS: "host.minikube.internal:6379"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: background-worker-config
+data:
+  REDIS_ADDRS: "host.minikube.internal:6379"

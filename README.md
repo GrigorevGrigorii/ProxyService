@@ -17,6 +17,7 @@ A lightweight, configurable **reverse proxy service** with the following capabil
 - **Fully observable** – Structured logging, request IDs, Swagger docs.
 
 Designed to run on **AWS ECS Fargate** with **Postgres** and **Redis Sentinel**, but easy to run locally via Docker Compose.
+A Kubernetes-based cloud deployment alternative is also available in `deployments/k8s/` (not fully validated in cloud yet because free tier quota is over).
 
 ## ✨ Features
 
@@ -122,6 +123,9 @@ The project includes ready-to-use AWS ECS task definitions and GitHub Actions wo
 
 See `deployments/aws-ecs-task-definitions/` and `build/package/Dockerfile`.
 
+As an alternative to ECS, there is also a Kubernetes deployment setup in `deployments/k8s/` with `cloud` and `local` overlays.
+Cloud correctness of the Kubernetes path has not been fully verified yet because the AWS free tier quota is over.
+
 ## 📁 Project Structure (key folders)
 
 ```
@@ -139,7 +143,7 @@ proxy-service/
 │   └── config/             # Viper config loading
 ├── configs/                # YAML configs + Casbin policy
 ├── api/*/docs/             # Generated Swagger
-├── deployments/            # AWS ECS definitions
+├── deployments/            # AWS ECS definitions + Kubernetes manifests
 ├── test/                   # docker-compose.yaml
 ├── Makefile
 └── go.mod
@@ -148,7 +152,7 @@ proxy-service/
 ## 🔧 Configuration
 
 All services read from `configs/*.yaml` (overridable via environment variables).  
-Example environment variables are already set in Docker Compose and ECS task definitions.
+Example environment variables are already set in Docker Compose, ECS task definitions, and Kubernetes overlays.
 
 ## Contributing
 
