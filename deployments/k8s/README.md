@@ -10,7 +10,7 @@ This folder mirrors the workloads defined in `deployments/aws-ecs-task-definitio
 Layout:
 
 - `base/`: shared Deployments + Services (no environment-specific config)
-- `overlays/cloud/`: cloud settings (RDS/Redis-style env + ALB-backed ingress for `proxy-service.sylu.net`)
+- `overlays/cloud/`: cloud settings (RDS-style env + ALB-backed ingress for `proxy-service.sylu.net`)
 - `overlays/local/`: local settings (Minikube + local Postgres/Redis via `host.minikube.internal`)
 
 ## Notes
