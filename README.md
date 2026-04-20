@@ -1,7 +1,10 @@
 # Proxy Service
 
 **This project was made for educational purposes.**  
+
 It demonstrates a production-grade microservices architecture in Go, including a configurable reverse proxy, background caching, RBAC authorization, database migrations, Redis queuing, and AWS deployment (AWS deployment is not working now because I've reached my free tier quota).
+
+Some obvious production improvements (for example, authentication options for additional upstream services, hardening, and other operational safeguards) are intentionally not implemented yet, because the main goal of this repository is learning and experimentation.
 
 ---
 
