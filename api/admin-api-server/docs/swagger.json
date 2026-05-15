@@ -27,7 +27,7 @@
                 }
             }
         },
-        "/v1/service": {
+        "/v1/services": {
             "get": {
                 "produces": [
                     "application/json"
@@ -92,7 +92,7 @@
                 }
             }
         },
-        "/v1/service/{name}": {
+        "/v1/services/{name}": {
             "get": {
                 "produces": [
                     "application/json"

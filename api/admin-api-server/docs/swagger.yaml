@@ -143,7 +143,7 @@ paths:
       summary: Ping
       tags:
       - Common API
-  /v1/service:
+  /v1/services:
     get:
       produces:
       - application/json
@@ -185,7 +185,7 @@ paths:
       summary: Create service
       tags:
       - Admin API
-  /v1/service/{name}:
+  /v1/services/{name}:
     delete:
       parameters:
       - description: Service name

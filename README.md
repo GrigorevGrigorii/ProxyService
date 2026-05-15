@@ -92,11 +92,11 @@ make init-pg-data
 - **Swagger**: http://localhost:8082/api/admin/swagger/index.html
 
 Endpoints:
-- `GET /v1/service` – List all services
-- `GET /v1/service/{name}` – Get service + targets
-- `POST /v1/service` – Create service
-- `PUT /v1/service/{name}` – Update service (with version)
-- `DELETE /v1/service/{name}` – Delete service
+- `GET /v1/services` – List all services
+- `GET /v1/services/{name}` – Get service + targets
+- `POST /v1/services` – Create service
+- `PUT /v1/services/{name}` – Update service (with version)
+- `DELETE /v1/services/{name}` – Delete service
 
 ### Proxy API (port 8080)
 - **Base**: `/api/proxy`

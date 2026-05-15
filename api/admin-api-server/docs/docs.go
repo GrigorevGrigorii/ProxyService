@@ -34,7 +34,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/service": {
+        "/v1/services": {
             "get": {
                 "produces": [
                     "application/json"
@@ -99,7 +99,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/service/{name}": {
+        "/v1/services/{name}": {
             "get": {
                 "produces": [
                     "application/json"

@@ -20,7 +20,7 @@ type AdminHandlers struct {
 //	@Tags		Admin API
 //	@Produce	json
 //	@Success	200	{object}	[]models.ServiceDTO	"Success"
-//	@Router		/v1/service [get]
+//	@Router		/v1/services [get]
 func (h *AdminHandlers) GetServices(c *gin.Context) {
 	services, err := h.ServiceRepository.GetAll(c.Request.Context())
 	if err != nil {
@@ -39,7 +39,7 @@ func (h *AdminHandlers) GetServices(c *gin.Context) {
 //	@Param		name	path		string				true	"Service name"
 //	@Success	200		{object}	models.ServiceDTO	"Success"
 //	@Failure	404		{object}	MessageResponse		"Service not found"
-//	@Router		/v1/service/{name} [get]
+//	@Router		/v1/services/{name} [get]
 func (h *AdminHandlers) GetService(c *gin.Context) {
 	service, err := h.ServiceRepository.Get(c.Request.Context(), c.Param("name"))
 	if errors.Is(err, repository.ErrNotFound) {
@@ -64,7 +64,7 @@ func (h *AdminHandlers) GetService(c *gin.Context) {
 //	@Success	200		{object}	MessageResponse			"Success"
 //	@Failure	400		{object}	MessageResponse			"Bad request"
 //	@Failure	409		{object}	MessageResponse			"Service already exists"
-//	@Router		/v1/service [post]
+//	@Router		/v1/services [post]
 func (h *AdminHandlers) CreateService(c *gin.Context) {
 	var request createServiceRequest
 	if err := c.BindJSON(&request); err != nil {
@@ -114,7 +114,7 @@ func (h *AdminHandlers) CreateService(c *gin.Context) {
 //	@Success	200		{object}	MessageResponse			"Success"
 //	@Failure	400		{object}	MessageResponse			"Bad request"
 //	@Failure	404		{object}	MessageResponse			"Service not found"
-//	@Router		/v1/service/{name} [put]
+//	@Router		/v1/services/{name} [put]
 func (h *AdminHandlers) UpdateService(c *gin.Context) {
 	var request updateServiceRequest
 	if err := c.BindJSON(&request); err != nil {
@@ -162,7 +162,7 @@ func (h *AdminHandlers) UpdateService(c *gin.Context) {
 //	@Produce	json
 //	@Param		name	path		string			true	"Service name"
 //	@Success	200		{object}	MessageResponse	"Success"
-//	@Router		/v1/service/{name} [delete]
+//	@Router		/v1/services/{name} [delete]
 func (h *AdminHandlers) DeleteService(c *gin.Context) {
 	err := h.ServiceRepository.Delete(c.Request.Context(), c.Param("name"))
 	if err != nil {

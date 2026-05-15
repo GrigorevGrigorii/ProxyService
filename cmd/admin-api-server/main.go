@@ -78,11 +78,11 @@ func main() {
 
 	router.GET("/api/admin/ping", handlers.Ping)
 
-	router.GET("/api/admin/v1/service", adminHandlers.GetServices)
-	router.GET("/api/admin/v1/service/:name", adminHandlers.GetService)
-	router.POST("/api/admin/v1/service", adminHandlers.CreateService)
-	router.PUT("/api/admin/v1/service/:name", adminHandlers.UpdateService)
-	router.DELETE("/api/admin/v1/service/:name", adminHandlers.DeleteService)
+	router.GET("/api/admin/v1/services", adminHandlers.GetServices)
+	router.GET("/api/admin/v1/services/:name", adminHandlers.GetService)
+	router.POST("/api/admin/v1/services", adminHandlers.CreateService)
+	router.PUT("/api/admin/v1/services/:name", adminHandlers.UpdateService)
+	router.DELETE("/api/admin/v1/services/:name", adminHandlers.DeleteService)
 
 	// Server
 	router.Run(fmt.Sprintf(":%d", cfg.Port))
